@@ -5,6 +5,7 @@ function [Shear,Veer,Power,I,Time,Nacelle,OrigIndices] = ExtractData(T,data,Indi
 %OrigIndices = 1;
 
 %% Shear Data
+
     Shear = zeros(length(T.Heights),length(data.DateTime));                                 % Preallocate array             [-]
     
     for i = 1:length(T.Heights)                                                             % Retrieve wind shear           [m/s]
@@ -20,6 +21,7 @@ function [Shear,Veer,Power,I,Time,Nacelle,OrigIndices] = ExtractData(T,data,Indi
     ShearIndices        = all(Shear);                                                       % Identify rows that have zeros [-]
 
 %% Veer Data
+
     Veer = zeros(length(T.Heights),length(data.DateTime));                                  % Preallocate array             [-]
     
     for i = 1:length(T.Heights)                                                             % Retrieve wind veer            [deg]
@@ -172,4 +174,13 @@ fprintf('\nDATETIME DATA\n\n')
     else
         fprintf('          NO MATCH\n')
     end
+
+%% Apply Veer Offset
+
+    Veer = Veer + T.Offset;                                                 % Apply LiDAR offset            [deg]
+    
+    Veer(Veer > 360) = Veer(Veer > 360) - 360;                              % Correct values > 360 degrees  [deg]
+    
+    Veer(Veer == 360) = 0;  
+
 end

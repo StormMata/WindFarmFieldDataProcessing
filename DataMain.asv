@@ -120,7 +120,13 @@ clear C
 
 %% New Stuff
 
-[Ep] = ErrorTimeSeries(Shear,Power,WindBins,Mean,Time,T)
+for i = 1:size(Shear,2)
+    BinNum = 
+end
+
+ indices = find(Shear(7,1) <= WindBins);
+ min(indices);
+ Ep = abs(Shear(7,1) - Mean.All(1))
 
 
 

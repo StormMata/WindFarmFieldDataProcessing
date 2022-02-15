@@ -239,6 +239,7 @@ else
 end
 xlim([0 225])
 ylim([0 2200])
+xtickangle(45)
 if i == 7
     ylabel('Power (kW)')
 end
@@ -258,16 +259,16 @@ end
 %fig13
 h(1) = subplot(2,1,1);
     hold on
-    plot(WindBins,AllMean,'LineWidth',1.5,'Color','#0072BD','LineStyle','-')
-    plot(WindBins,LargerMean,'LineWidth',1.5,'Color','#D95319','LineStyle','--')
+    plot(WindBins,Mean.All,'LineWidth',1.5,'Color','#0072BD','LineStyle','-')
+    plot(WindBins,Mean.Larger,'LineWidth',1.5,'Color','#D95319','LineStyle','--')
     ylabel('Power (kW)')
     yyaxis right
     ylabel('Counts')
-    bar(WindBins,AllNum,'FaceColor','k')
-    bar(WindBins,LargerNum,'FaceColor','r')
+    bar(WindBins,Num.All,'FaceColor','k')
+    bar(WindBins,Num.Larger,'FaceColor','r')
     alpha(0.05)
-    str1 = sprintf('All Average, N = %s',fliplr(regexprep(fliplr(num2str(sum(AllNum))),'\d{3}(?=\d)', '$0,')));
-    str2 = sprintf('AA > Hub, N = %s',fliplr(regexprep(fliplr(num2str(sum(LargerNum))),'\d{3}(?=\d)', '$0,')));
+    str1 = sprintf('All Average, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.All))),'\d{3}(?=\d)', '$0,')));
+    str2 = sprintf('AA > Hub, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.Larger))),'\d{3}(?=\d)', '$0,')));
     legend(str1, str2, 'All Data','AA > Hub')
     xlabel('u(z = z_h) (m/s)')
     grid on
@@ -279,7 +280,7 @@ h(1) = subplot(2,1,1);
     xlim([0 16])
     hold off
 h(2) = subplot(2,1,2);
-    bar(WindBins,SigLarge,'FaceColor','#308538')
+    bar(WindBins,Sig.Large,'FaceColor','#308538')
     xlim([0 16])
     set(gca,'ytick',[])
     set(gca,'xtick',[])

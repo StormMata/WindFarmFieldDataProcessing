@@ -9,8 +9,6 @@ function [PowLaw] = PowerLawFit(Shear,T)
 %           B = Vector containing shear profile
 %           C = Vector containing heights of wind speed measurements
 
-warning('off')
-
 fprintf('\n------------------------')
 fprintf('\n-----Power Law Fits-----')
 fprintf('\n------------------------\n')
@@ -24,16 +22,19 @@ for i = 1:size(Shear,2)
     Heights = flip(T.Heights)'.*Filter;
     Heights(Heights == 0) = NaN;
 
-    [xdata, ydata] = prepareCurveData(Heights,Shear(:,i));                  % Required for curve-fitting toolbox
+    %[xdata, ydata] = prepareCurveData(Heights,Shear(:,i));                  % Required for curve-fitting toolbox
 
-    u = num2str(Shear(end,i));                                              % Reference wind speed          [m/s]
+    xdata = Heights;
+    ydata = Shear(:,i);
+
+    u = num2str(Shear(12,i));                                               % Reference wind speed          [m/s]
     z = num2str(T.Heights(1));                                              % Reference height              [m]
     
     model = strcat(u,'*(x/',z,')^a');                                       % Define power law model
     
-    ft = fittype(model, 'independent', 'x', 'dependent', 'y');              % Classify variables
+    ft = fittype( model, 'independent', 'x', 'dependent', 'y');             % Classify variables
 
-    opts = fitoptions('Method', 'NonlinearLeastSquares');                   % Regression method
+    opts = fitoptions( 'Method', 'NonlinearLeastSquares' );                 % Regression method
     opts.Display    = 'Off';
     opts.StartPoint = 1/7;                                                  % Required for curve-fitting toolbox
 
