@@ -1,8 +1,8 @@
-function [AreaMean,AvgComp] = AreaAveragedPower(T,Shear,NormalWind)
-%AreaAveragedPower Calculates the average incoming windspeed over the rotor
-%using linear interpolation between measurements points and the assumption
-%of horizontal homogeneity.
-%   [A,B] = PowerLawFit(C,D,E)
+function [AreaMean,AvgComp] = AreaAveragedVelocity(T,Shear,NormalWind)
+%AreaAveragedVelocity Calculates the average incoming windspeed over the
+%rotor using linear interpolation between measurements points and the
+%assumption of horizontal homogeneity.
+%   [A,B] = AreaAveragedVelocity(C,D,E)
 %           A = Vector containing the average windspeeds for each time
 %           B = Structure containing the logic vectors indicating when the
 %               area-averaged windspeed is less or greater than the hub
@@ -66,10 +66,10 @@ TimeEnd = toc(TimeStart);
 
 fprintf('\n\nTime: %10d minutes \n%16.0f seconds\n', floor(TimeEnd/60), rem(TimeEnd,60));
 
-fprintf('\n')
-
 AvgComp.Greater = AreaMean > Shear(T.HubRow,:);                             % Area average greater than hub height
 AvgComp.Less    = AreaMean < Shear(T.HubRow,:);                             % Area average less than hub height
+
+%% Optional Plot 
 
 % figure
 % surf(ycoords,zcoords,SPgrid.*RotorFilterOutter.*RotorFilterInner)

@@ -10,6 +10,8 @@ function [Ekman] = EkmanFit(Shear,T)
 %           B = Vector containing shear profile
 %           C = Vector containing heights of wind speed measurements
 
+TimeStart = tic;
+
 fprintf('\n------------------------')
 fprintf('\n-------Ekman Fits-------')
 fprintf('\n------------------------\n')
@@ -62,6 +64,8 @@ for i = 1:size(Shear,2)
 
 end
 
-fprintf('\n')
+TimeEnd = toc(TimeStart);
+
+fprintf('\n\nTime: %10d minutes \n%16.0f seconds\n', floor(TimeEnd/60), rem(TimeEnd,60));
 
 end

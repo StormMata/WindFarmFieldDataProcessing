@@ -102,13 +102,13 @@ clear C
 
 %% Section 6 - Compute Area Average of Incident Wind
 
-    [AAWind,AvgComp] = AreaAveragedPower(T,Shear,NormalWind);                   % Area-averaged wind speed      [m/s]
+    [AAWind,AvgComp] = AreaAveragedVelocity(T,Shear,NormalWind);                % Area-averaged wind speed      [m/s]
 
 %% Section 7 - Fit Power Law to Shear
 
-    [PLFull]   = PowerLawFit(Shear,T);                                          % Fit power law to shear profiles
+    [PLFull]   = PowerLawFit(Shear,T,0);                                        % Fit power law to shear profiles
 
-    [PLInflec] = InflectionPL(Shear,T);                                         % Fit power law to shear profiles up to inflection point
+    [PLInflec] = PowerLawFit(Shear,T,1);                                        % Fit power law to shear profiles up to inflection point
 
 %% Section 8 - Fit Power Law to Shear
 

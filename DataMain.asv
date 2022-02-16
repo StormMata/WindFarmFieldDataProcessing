@@ -102,13 +102,13 @@ clear C
 
 %% Section 6 - Compute Area Average of Incident Wind
 
-    [AAWind,AvgComp] = AreaAveragedPower(T,Shear,NormalWind);                   % Area-averaged wind speed      [m/s]
+    [AAWind,AvgComp] = AreaAveragedVelocity(T,Shear,NormalWind);                % Area-averaged wind speed      [m/s]
 
 %% Section 7 - Fit Power Law to Shear
 
-    [PLFull]   = PowerLawFit(Shear,T);                                          % Fit power law to shear profiles
+    [PLFull]   = PowerLawFit(Shear,T,0);                                        % Fit power law to shear profiles
 
-    [PLInflec] = InflectionPL(Shear,T);                                         % Fit power law to shear profiles up to inflection point
+    [PLInflec] = PowerLawFit(Shear,T,1);                                        % Fit power law to shear profiles up to inflection point
 
 %% Section 8 - Fit Power Law to Shear
 
@@ -163,13 +163,14 @@ timeaxis = duration(minutes(0:1:1439),'Format','hh:mm');
             ylabel('\alpha (-)')
             title('Average Time-of-Day vs. Power Law Alpha (Full Profile)')
 
-%% Ep v. Alpha
+%% Ep v. Alpha Full
 
 R = range(PLFull.alpha);
 Bins = 40;
 Rstep = R/Bins;
+xaxis = linspace(min(PLFull.alpha),max(PLFull.alpha),Bins);
     
-    for i = 1:size(PLFull.alpha,1)
+    for i = 1:length(xaxis)
 
         Indices = (PLFull.alpha <= min(PLFull.alpha)+(i*Rstep));
     
@@ -184,11 +185,37 @@ Rstep = R/Bins;
     end
 
     figure
-        plot(timeaxis,PL.TODvALPHAmean,'LineStyle','none','Marker','.','Color','k')
+        plot(xaxis,Ep.EpvALPHAmean,'Color','k')
             ylabel('\epsilon_P (kW)')
             xlabel('\alpha (-)')
             title('\epsilon_P vs. Power Law Alpha (Full Profile)')
 
+%% Ep v. Alpha Partial
+
+R = range(PLInflec.alpha);
+Bins = 40;
+Rstep = R/Bins;
+xaxis = linspace(min(PLInflec.alpha),max(PLInflec.alpha),Bins);
+    
+    for i = 1:length(xaxis)
+
+        Indices = (PLInflec.alpha <= min(PLInflec.alpha)+(i*Rstep));
+    
+        Ep.EpvALPHAinflec(i,:) = Indices .* Ep.abs;
+
+    end
+    
+    for i = 1:size(Ep.EpvALPHAinflec,1)
+    
+        Ep.EpvALPHAinflecmean(i) = mean(nonzeros(Ep.EpvALPHAinflec(i,:)));
+    
+    end
+
+    figure
+        plot(xaxis,Ep.EpvALPHAinflecmean,'Color','k')
+            ylabel('\epsilon_P (kW)')
+            xlabel('\alpha (-)')
+            title('\epsilon_P vs. Power Law Alpha (Partial Profile)')
 
 %% ------ Item 1 ------
 

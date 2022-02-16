@@ -1,65 +1,90 @@
-function [PowLaw] = PowerLawFit(Shear,T)
+function [PowLaw] = PowerLawFit(Shear,T,FitProfile)
 %PowerLawFit Calculates the optimum alpha exponent for the power law fit
 %for the given shear profile.
-%   [A] = PowerLawFit(B,C)
+%   [A] = PowerLawFit(B,C,D)
 %           A = Structure containing the optimum fit variables
 %               A.alpha   = alpha exponent
 %               A.rsquare = R^2 value of fit
 %               A.rmse    = Root Mean Square Error of fit
 %           B = Vector containing shear profile
 %           C = Vector containing heights of wind speed measurements
+%           D = Boolean variable indicating shear profile to fit curve to
+%               0 = Full profile
+%               1 = Up to inflection point (switch to negative shear)
 
-warning('off')
+TimeStart = tic;
 
-fprintf('\n------------------------')
-fprintf('\n-----Power Law Fits-----')
-fprintf('\n------------------------\n')
-fprintf('\nComplete:             0')
+if FitProfile == 0
 
-for i = 1:size(Shear,2)
+    fprintf('\n------------------------')
+    fprintf('\n-----Power Law Fits-----')
+    fprintf('\n------------------------\n')
+    fprintf('\nComplete:             0')
+
+else
+
+    fprintf('\n************************')
+    fprintf('\n*Modified Power Law Fit*')
+    fprintf('\n************************\n')
+    fprintf('\nComplete:             0')
+
+end
+
+warning('off')                                                              % Turn off warnings from prepareCurveData()
 
 % ----------------- Power Law Fit -----------------
 
-    Filter = ~isnan(Shear(:,i));
-    Heights = flip(T.Heights)'.*Filter;
-    Heights(Heights == 0) = NaN;
+    for i = 1:size(Shear,2)
 
-    [xdata, ydata] = prepareCurveData(Heights,Shear(:,i));                  % Required for curve-fitting toolbox
+        Heights = flip(T.Heights)';
 
-    u = num2str(Shear(end,i));                                              % Reference wind speed          [m/s]
-    z = num2str(T.Heights(1));                                              % Reference height              [m]
+        if FitProfile == 1
+
+            dudz  = gradient(Shear(:,i))./gradient(Heights);                % Calculate sign of shear profile
+            index = find(dudz<0,1,'last');                                  % Find first point of negative shear
+            Shear(1:index,i) = NaN;                                         % Set all measurements above that point to NaN
+            Heights(1:index) = NaN;                                         % Do same for heights            
+
+        end
     
-    model = strcat(u,'*(x/',z,')^a');                                       % Define power law model
+        [xdata, ydata] = prepareCurveData(Heights,Shear(:,i));              % Required for curve-fitting toolbox
     
-    ft = fittype(model, 'independent', 'x', 'dependent', 'y');              % Classify variables
-
-    opts = fitoptions('Method', 'NonlinearLeastSquares');                   % Regression method
-    opts.Display    = 'Off';
-    opts.StartPoint = 1/7;                                                  % Required for curve-fitting toolbox
-
-try
-
-    [fitresult, gof] = fit(xdata, ydata, ft, opts);                         % Perform fit
+        u = num2str(Shear(end,i));                                          % Reference wind speed          [m/s]
+        z = num2str(Heights(end));                                          % Reference height              [m]
+        
+        model = strcat(u,'*(x/',z,')^a');                                   % Define power law model
+        
+        ft = fittype(model, 'independent', 'x', 'dependent', 'y');          % Classify variables
     
-    PowLaw.alpha(i) = fitresult.a;                                          % Store alpha for each profile
-    PowLaw.R(i)     = gof.rsquare;                                          % Store R^2 value for each fit
-    PowLaw.RMSE(i)  = gof.rmse;                                             % Store Root Mean Square Error for each fit
-
-catch
-
-    PowLaw.alpha(i) = NaN;                                                  % If curve fit fails, store Nan for alpha
-    PowLaw.R(i)     = NaN;                                                  % If curve fit fails, store NaN for R^2
-    PowLaw.RMSE(i)  = NaN;                                                  % If curve fit fails, store NaN for Root Mean Square Error
-
-end
-
-    if mod(i,10)==0
-        p = i/size(Shear,2)*100;
-        fprintf('\b\b\b\b\b\b\b%6.1f%%',p)                                  % print progress to screen
+        opts = fitoptions('Method', 'NonlinearLeastSquares');               % Regression method
+        opts.Display    = 'Off';
+        opts.StartPoint = 1/7;                                              % Required for curve-fitting toolbox
+    
+    try
+    
+        [fitresult, gof] = fit(xdata, ydata, ft, opts);                     % Perform fit
+        
+        PowLaw.alpha(i) = fitresult.a;                                      % Store alpha for each profile
+        PowLaw.R(i)     = gof.rsquare;                                      % Store R^2 value for each fit
+        PowLaw.RMSE(i)  = gof.rmse;                                         % Store Root Mean Square Error for each fit
+    
+    catch
+    
+        PowLaw.alpha(i) = NaN;                                              % If curve fit fails, store Nan for alpha
+        PowLaw.R(i)     = NaN;                                              % If curve fit fails, store NaN for R^2
+        PowLaw.RMSE(i)  = NaN;                                              % If curve fit fails, store NaN for Root Mean Square Error
+    
+    end
+    
+        if mod(i,10)==0
+            p = i/size(Shear,2)*100;
+            fprintf('\b\b\b\b\b\b\b%6.1f%%',p)                              % print progress to screen
+        end
+    
     end
 
-end
+TimeEnd = toc(TimeStart);
 
-fprintf('\n')
+fprintf('\n\nTime: %10d minutes \n%16.0f seconds\n', floor(TimeEnd/60), rem(TimeEnd,60));
 
 end

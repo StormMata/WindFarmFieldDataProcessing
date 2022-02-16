@@ -9,7 +9,8 @@ function [AreaMean,AvgComp] = AreaAveragedPower(T,Shear,NormalWind)
 %               height velocity
 %               B.Greater = When the area average is greater than hub
 %                           height
-%               B.Less    = When the area average is less than hub height
+%               B.Greater = When the area average is greater than hub
+%                           height
 %           C = Vector containing heights of wind speed measurements
 %           D = Structure containing the optimum fit variables
 %               A.alpha   = alpha exponent
@@ -19,6 +20,7 @@ function [AreaMean,AvgComp] = AreaAveragedPower(T,Shear,NormalWind)
 %               speeds for each measurement in time and space
 
 TimeStart = tic;
+
 
 fprintf('\n------------------------')
 fprintf('\n------Area Average------')
@@ -61,10 +63,6 @@ for i = 1:size(NormalWind,2)
         p = i/size(NormalWind,2)*100;
         fprintf('\b\b\b\b\b\b\b%6.1f%%',p)                                  % Let me know it's working
 end
-
-TimeEnd = toc(TimeStart);
-
-fprintf('\n\nTime: %10d minutes \n%16.0f seconds\n', floor(TimeEnd/60), rem(TimeEnd,60));
 
 fprintf('\n')
 
