@@ -29,10 +29,12 @@ function [Indices] = IntFilter(C, T, data)
 
     CondWiE   = (data.Lidar.H104m.WndDir >= C.W | data.Lidar.H104m.WndDir <= C.E);              % Retrieve only northern flow
 
-FilterVector = CondLiAv .* CondTuAv .* CondOp .* CondStrat .* CondYaw .* CondNac .* CondWiE;    % Combine all individual filters into initial filter
-
-FullIndex = 1:1:size(FilterVector,2);                                                           % Generate inital full list of indices
-
-Indices = nonzeros(FullIndex .* FilterVector)';                                                 % Indices after filter is applied
+% Create Filter
+    
+    FilterVector = CondLiAv .* CondTuAv .* CondOp .* CondStrat .* CondYaw .* CondNac .* CondWiE;% Combine all individual filters into initial filter
+    
+    FullIndex = 1:1:size(FilterVector,2);                                                       % Generate inital full list of indices
+    
+    Indices = nonzeros(FullIndex .* FilterVector)';                                             % Indices after filter is applied
 
 end

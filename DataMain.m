@@ -29,7 +29,7 @@
 % Wind
 
 
-clearvars -except data %Ekman PL PLInflec
+clearvars -except data Ekman PLFull PLInflec
 %close all
 clc
 
@@ -120,11 +120,102 @@ clear C
 
 %% New Stuff
 
-[Ep] = ErrorTimeSeries(Shear,Power,WindBins,Mean,Time,T)
+[Ep] = ErrorTimeSeries(Shear,Power,WindBins,Mean,Time,T);
 
+%% Alpa v. TOD
 
+    [~,~,~,H,MN,~] = datevec(Time);
+timeaxis = duration(minutes(0:1:1439),'Format','hh:mm');
 
+    index = 1;
+    i     = 0;
+    j     = 0;
+    
+    while i <= 23
+    
+        while j <= 59
+    
+            Indices = (H == i & MN == j);
+        
+            PL.TODvALPHA(index,:) = Indices .* PLFull.alpha;
+    
+            j     = j + 1;
+    
+            index = index + 1;
+    
+        end
+    
+        i = i + 1;
+        j = 0;
+    
+    end
+    
+    for i = 1:size(Ep.TOD,1)
+    
+        PL.TODvALPHAmean(i) = mean(nonzeros(PL.TODvALPHA(i,:)));
+    
+    end
 
+    figure
+        plot(timeaxis,PL.TODvALPHAmean,'LineStyle','none','Marker','.','Color','k')
+            xtickformat('hh:mm')
+            xlim([timeaxis(1) timeaxis(end)+minutes(1)])
+            ylabel('\alpha (-)')
+            title('Average Time-of-Day vs. Power Law Alpha (Full Profile)')
+
+%% Ep v. Alpha Full
+
+R = range(PLFull.alpha);
+Bins = 40;
+Rstep = R/Bins;
+xaxis = linspace(min(PLFull.alpha),max(PLFull.alpha),Bins);
+    
+    for i = 1:length(xaxis)
+
+        Indices = (PLFull.alpha <= min(PLFull.alpha)+(i*Rstep));
+    
+        Ep.EpvALPHA(i,:) = Indices .* Ep.abs;
+
+    end
+    
+    for i = 1:size(Ep.EpvALPHA,1)
+    
+        Ep.EpvALPHAmean(i) = mean(nonzeros(Ep.EpvALPHA(i,:)));
+    
+    end
+
+    figure
+        plot(xaxis,Ep.EpvALPHAmean,'Color','k')
+            ylabel('\epsilon_P (kW)')
+            xlabel('\alpha (-)')
+            title('\epsilon_P vs. Power Law Alpha (Full Profile)')
+
+%% Ep v. Alpha Partial
+
+R = range(PLInflec.alpha);
+Bins = 40;
+Rstep = R/Bins;
+xaxis = linspace(min(PLInflec.alpha),max(PLInflec.alpha),Bins);
+    
+    for i = 1:length(xaxis)
+
+        Indices = (PLInflec.alpha <= min(PLInflec.alpha)+(i*Rstep));
+    
+        Ep.EpvALPHAinflec(i,:) = Indices .* Ep.abs;
+
+    end
+    
+    for i = 1:size(Ep.EpvALPHAinflec,1)
+    
+        Ep.EpvALPHAinflecmean(i) = mean(nonzeros(Ep.EpvALPHAinflec(i,:)));
+    
+    end
+
+    figure
+        plot(xaxis,Ep.EpvALPHAinflecmean,'Color','k')
+            ylabel('\epsilon_P (kW)')
+            xlabel('\alpha (-)')
+            title('\epsilon_P vs. Power Law Alpha (Partial Profile)')
 
 %% ------ Item 1 ------
 
