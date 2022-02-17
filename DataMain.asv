@@ -106,7 +106,7 @@ clear C
 
 %% Section 7 - Fit Power Law to Shear
 
-    [PLFull]   = PowerLawFit(Shear,T,0);                                        % Fit power law to shear profiles
+    [PLFull]   = PowerLawFit(Shear,T,'Full');                                        % Fit power law to shear profiles
 
     [PLInflec] = PowerLawFit(Shear,T,1);                                        % Fit power law to shear profiles up to inflection point
 
@@ -118,14 +118,14 @@ clear C
 
     [WindBins,Mean,Num,Dist,STD,Sig] = CondAvgs(T,Shear,Power,AvgComp);
 
-%% New Stuff
+%% Section 10 - Time Series of Power Error
 
-[Ep] = ErrorTimeSeries(Shear,Power,WindBins,Mean,Time,T);
+    [Ep] = ErrorTimeSeries(Shear,Power,WindBins,Mean,Time,T);
 
 %% Alpa v. TOD
 
     [~,~,~,H,MN,~] = datevec(Time);
-timeaxis = duration(minutes(0:1:1439),'Format','hh:mm');
+    timeaxis = duration(minutes(0:1:1439),'Format','hh:mm');
 
     index = 1;
     i     = 0;

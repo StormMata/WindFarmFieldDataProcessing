@@ -14,7 +14,7 @@ function [PowLaw] = PowerLawFit(Shear,T,FitProfile)
 
 TimeStart = tic;
 
-if FitProfile == 0
+if strcmp(FitProfile,'Full') == 1
 
     fprintf('\n------------------------')
     fprintf('\n-----Power Law Fits-----')
@@ -38,10 +38,10 @@ warning('off')                                                              % Tu
 
         Heights = flip(T.Heights)';
 
-        if FitProfile == 1
+        if strcmp(FitProfile,'Inflec') == 1
 
             dudz  = gradient(Shear(:,i))./gradient(Heights);                % Calculate sign of shear profile
-            index = find(dudz<0,1,'last');                                  % Find first point of negative shear
+            index = find(dudz < 0, 1, 'last');                                  % Find first point of negative shear
             Shear(1:index,i) = NaN;                                         % Set all measurements above that point to NaN
             Heights(1:index) = NaN;                                         % Do same for heights            
 
