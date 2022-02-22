@@ -41,7 +41,7 @@ for i = 1:size(NormalWind,2)
 
     % 3. Interpolate sheer profile to match grid spacing    
     
-        SP = interp1(T.Heights,NormalWind(:,i),43:1:169);                   % Interpolate to 1-meter spacing (linear)
+        SP = interp1(flip(T.Heights)',NormalWind(:,i),43:1:169);            % Interpolate to 1-meter spacing (linear)
     
     % 4. Create grid with sheer profile
     

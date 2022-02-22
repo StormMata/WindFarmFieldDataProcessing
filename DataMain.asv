@@ -63,8 +63,6 @@ clc
 
 %% Section 2 - Load Data
 
-cd('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Thesis/Conditional Averages/WindFarmFieldDataProcessing');
-
 if exist('data','var') == 0
     [data] = LoadFullData();
 end
@@ -98,7 +96,7 @@ clear C
 
 %% Section 5 - Find adjusted wind angle
 
-    [NormalWind] = NormalInflow(Nacelle,Veer,Shear);                            % Find cosine projection of freestream wind [m/s]
+    [NormalWind,RelBear] = NormalInflow(Nacelle,Veer,Shear);                    % Find cosine projection of freestream wind [m/s]
 
 %% Section 6 - Compute Area Average of Incident Wind
 
@@ -106,9 +104,9 @@ clear C
 
 %% Section 7 - Fit Power Law to Shear
 
-    [PLFull]   = PowerLawFit(Shear,T,'Full');                                        % Fit power law to shear profiles
+    [PLFull]   = PowerLawFit(Shear,T,'Full');                                   % Fit power law to shear profiles
 
-    [PLInflec] = PowerLawFit(Shear,T,1);                                        % Fit power law to shear profiles up to inflection point
+    [PLInflec] = PowerLawFit(Shear,T,'Inflec');                                 % Fit power law to shear profiles up to inflection point
 
 %% Section 8 - Fit Power Law to Shear
 
@@ -116,13 +114,32 @@ clear C
 
 %% Section 9 - Conditional Averages and Stats
 
-    [WindBins,Mean,Num,Dist,STD,Sig] = CondAvgs(T,Shear,Power,AvgComp);
+    [WindBins,Mean,Num,Dist,STD,Sig] = CondAvgs(T,Shear,Power,AvgComp);         % Calculate descriptive and inferential stats for data
 
 %% Section 10 - Time Series of Power Error
 
-    [Ep] = ErrorTimeSeries(Shear,Power,WindBins,Mean,Time,T);
+    [Ep] = ErrorTimeSeries(Shear,Power,WindBins,Mean,Time,T);                   % Calculate and plot error time series for data
+
+%% Section 11 - Direction Shear and Probability Plot
+
+    [PDFs] = ShearCharacterization(Veer,T,PLFull,PLInflec,'PlotOn');            % Calculate and plot PDF for direction and speed shear
+
+%% Section 12 - Alpha/Beta Relationship
+
+    [AlphaBeta] = AlphaBetaRel(Shear,PLFull,PDFs,Power,WindBins,T);              % Calculate and plot the relationship between shear and power
+
+
+
+
+
+
+
 
 %% Alpa v. TOD
+
+dir = rad2deg(angdiff(zeros(1,length(Veer(7,:))),deg2rad(Veer(7,:))));
+probplot(dir)
+histogram(dir,'Normalization','probability')
 
     [~,~,~,H,MN,~] = datevec(Time);
     timeaxis = duration(minutes(0:1:1439),'Format','hh:mm');
@@ -281,44 +298,44 @@ hold off
 
 %% Section 10 - Plot
 
-% BetzWind  = T.CutIn:0.5:9;                                                      % Reference Betz limit plot
-% BetzPower = (0.593 * 0.5 * 1.162 * pi * T.R^2 .* BetzWind.^3)/1e3;              % Reference Betz limit plot
-% 
-% xi = linspace(min(T.RefWind), max(T.RefWind), 100);                             % Evenly-Spaced Interpolation Vector
-% yi = interp1(T.RefWind, T.RefCurve, xi, 'spline', 'extrap');
-% 
-% figure;
-% %    plot(BetzWind,BetzPower)%,'color','k','LineStyle',':','Marker','*')
-%     hold on
-% %   plot(xi,yi,'LineWidth',0.85,'Color','k','LineStyle',':')
-%    plot(WindBins,Mean.All,'LineWidth',1.5,'Color','#0072BD','LineStyle','-')
-%    plot(WindBins,Mean.Larger,'LineWidth',1.5,'Color','#D95319','LineStyle','--')
-%    plot(WindBins,Mean.Less,'LineWidth',1.5,'Color','#A2142F','LineStyle','-.')
-% %      errorbar(WindBins, AllMean, AllSTD, '-')
-% %      errorbar(WindBins, LargerMean, LargerSTD, '-')
-% %      errorbar(WindBins, LessMean, LessSTD, '-')
-%      ylabel('Power (kW)')
-%     yyaxis right
-%     ylabel('Counts')
-%     bar(WindBins,Num.All,'FaceColor','k')
-%     bar(WindBins,Num.Less,'FaceColor','b')
-%     bar(WindBins,Num.Larger,'FaceColor','r')
-%     alpha(0.05)
-%     str1 = sprintf('All Average, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.All))),'\d{3}(?=\d)', '$0,')));
-%     str2 = sprintf('AA > Hub, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.Larger))),'\d{3}(?=\d)', '$0,')));
-%     str3 = sprintf('AA < Hub, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.Less))),'\d{3}(?=\d)', '$0,')));
-%     legend('Reference Curve', str1, str2, str3,'All Data','AA < Hub','AA > Hub')
+BetzWind  = T.CutIn:0.5:9;                                                      % Reference Betz limit plot
+BetzPower = (0.593 * 0.5 * 1.162 * pi * T.R^2 .* BetzWind.^3)/1e3;              % Reference Betz limit plot
+
+xi = linspace(min(T.RefWind), max(T.RefWind), 100);                             % Evenly-Spaced Interpolation Vector
+yi = interp1(T.RefWind, T.RefCurve, xi, 'spline', 'extrap');
+
+figure;
+%    plot(BetzWind,BetzPower)%,'color','k','LineStyle',':','Marker','*')
+    hold on
+  plot(xi,yi,'LineWidth',0.85,'Color','k','LineStyle',':')
+   plot(WindBins,Mean.All,'LineWidth',1.5,'Color','#0072BD','LineStyle','-')
+   plot(WindBins,Mean.Larger,'LineWidth',1.5,'Color','#D95319','LineStyle','--')
+   plot(WindBins,Mean.Less,'LineWidth',1.5,'Color','#A2142F','LineStyle','-.')
+%      errorbar(WindBins, AllMean, AllSTD, '-')
+%      errorbar(WindBins, LargerMean, LargerSTD, '-')
+%      errorbar(WindBins, LessMean, LessSTD, '-')
+     ylabel('Power (kW)')
+    yyaxis right
+    ylabel('Counts')
+    bar(WindBins,Num.All,'FaceColor','k')
+    bar(WindBins,Num.Less,'FaceColor','b')
+    bar(WindBins,Num.Larger,'FaceColor','r')
+    alpha(0.05)
+    str1 = sprintf('All Average, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.All))),'\d{3}(?=\d)', '$0,')));
+    str2 = sprintf('AA > Hub, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.Larger))),'\d{3}(?=\d)', '$0,')));
+    str3 = sprintf('AA < Hub, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.Less))),'\d{3}(?=\d)', '$0,')));
+    legend('Reference Curve', str1, str2, str3,'All Data','AA < Hub','AA > Hub')
 %     legend(str1, str2, str3,'All Data','AA < Hub','AA > Hub')
-%     xlabel('u(z = z_h) (m/s)')
-%     grid on
-%     titstr = sprintf('Turbine %2.0f',T.TOI);
-%     title(titstr)
-%     axprop = gca;
-%     axprop.YAxis(1).Color = 'k';
-%     axprop.YAxis(2).Color = '#800000';
-%     xlim([0 16])
-% %    ylim([-25 2500])
-% hold off
+    xlabel('u(z = z_h) (m/s)')
+    grid on
+    titstr = sprintf('Turbine %2.0f',T.TOI);
+    title(titstr)
+    axprop = gca;
+    axprop.YAxis(1).Color = 'k';
+    axprop.YAxis(2).Color = '#800000';
+    xlim([0 16])
+%    ylim([-25 2500])
+hold off
 % 
 % 
 % bar(AlphaBins,Mean.Alpha)

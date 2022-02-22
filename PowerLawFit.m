@@ -8,9 +8,9 @@ function [PowLaw] = PowerLawFit(Shear,T,FitProfile)
 %               A.rmse    = Root Mean Square Error of fit
 %           B = Vector containing shear profile
 %           C = Vector containing heights of wind speed measurements
-%           D = Boolean variable indicating shear profile to fit curve to
-%               0 = Full profile
-%               1 = Up to inflection point (switch to negative shear)
+%           D = String indicating shear profile to fit curve to
+%               'Full'   = Full profile
+%               'Inflec' = Up to inflection point (negative shear)
 
 TimeStart = tic;
 
@@ -41,13 +41,13 @@ warning('off')                                                              % Tu
         if strcmp(FitProfile,'Inflec') == 1
 
             dudz  = gradient(Shear(:,i))./gradient(Heights);                % Calculate sign of shear profile
-            index = find(dudz < 0, 1, 'last');                                  % Find first point of negative shear
+            index = find(dudz < 0, 1, 'last');                              % Find first point of negative shear
             Shear(1:index,i) = NaN;                                         % Set all measurements above that point to NaN
             Heights(1:index) = NaN;                                         % Do same for heights            
 
         end
     
-        [xdata, ydata] = prepareCurveData(Heights,Shear(:,i));              % Required for curve-fitting toolbox
+        [xdata, ydata] = prepareCurveData(Heights,Shear(:,i));              % Recommended for curve-fitting toolbox
     
         u = num2str(Shear(end,i));                                          % Reference wind speed          [m/s]
         z = num2str(Heights(end));                                          % Reference height              [m]
@@ -70,7 +70,7 @@ warning('off')                                                              % Tu
     
     catch
     
-        PowLaw.alpha(i) = NaN;                                              % If curve fit fails, store Nan for alpha
+        PowLaw.alpha(i) = NaN;                                              % If curve fit fails, store NaN for alpha
         PowLaw.R(i)     = NaN;                                              % If curve fit fails, store NaN for R^2
         PowLaw.RMSE(i)  = NaN;                                              % If curve fit fails, store NaN for Root Mean Square Error
     

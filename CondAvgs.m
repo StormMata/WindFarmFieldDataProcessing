@@ -12,9 +12,9 @@ for i = 1:length(WindBins)
 %         TempIndices   = TempIndices1 .* TempIndices2;
 
     % Compute averages for each category in each bin
-        Mean.All(i)    = mean(nonzeros(TempIndices .* Power));
-        Mean.Larger(i) = mean(nonzeros(AvgComp.Greater .* TempIndices .* Power));
-        Mean.Less(i)   = mean(nonzeros(AvgComp.Less .* TempIndices .* Power));
+        Mean.All(i)    = median(nonzeros(TempIndices .* Power));
+        Mean.Larger(i) = median(nonzeros(AvgComp.Greater .* TempIndices .* Power));
+        Mean.Less(i)   = median(nonzeros(AvgComp.Less .* TempIndices .* Power));
 
     % Compute descriptive stats
         Num.All(i)     = length(nonzeros(TempIndices .* Power));
