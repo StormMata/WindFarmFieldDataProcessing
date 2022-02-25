@@ -1,4 +1,4 @@
-function [Ep] = ErrorTimeSeries(Shear,Power,WindBins,Mean,Time,T)
+function [Ep] = ErrorTimeSeries(D,WindBins,Mean,T)
 %ErrorTimeSeries Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,18 +10,18 @@ fprintf('\nComplete:             0')
 TotalOps   = 28880;
 OpsCounter = 0;
 
-[~,~,~,H,MN,~] = datevec(Time);
+[~,~,~,H,MN,~] = datevec(D.Time);
 
 %% Calculations 
 
 % ----------------- Error: Ep -----------------
 
-    for i = 1:size(Shear,2)
+    for i = 1:size(D.Shear,2)
     
-        BinNum = find(Shear(T.HubRow,i) <= WindBins,1,'first');
+        BinNum = find(D.Shear(T.HubRow,i) <= WindBins,1,'first');
     
-        Ep.abs(i)  = abs(Power(i) - Mean.All(BinNum))/Mean.All(BinNum);
-        Ep.diff(i) = (Power(i) - Mean.All(BinNum))/Mean.All(BinNum);
+        Ep.abs(i)  = abs(D.Power(i) - Mean.All(BinNum))/Mean.All(BinNum);
+        Ep.diff(i) = (D.Power(i) - Mean.All(BinNum))/Mean.All(BinNum);
     
         OpsCounter = OpsCounter + 1;
         if mod(OpsCounter,10)==0
@@ -118,24 +118,27 @@ OpsCounter = 0;
 
 %% Plots
 
-dateaxis = datetime(Time,'ConvertFrom','datenum');
+dateaxis = datetime(D.Time,'ConvertFrom','datenum');
 timeaxis = duration(minutes(0:1:1439),'Format','hh:mm');
 h = zeros(1,12);
+
+Ep.abs1 = mean(reshape(Ep.abs(1:end-3),10,[]));
+dateaxis1 = dateaxis(5:10:end);
 
 % ----------------- Error: Ep -----------------
 
     figure
-        plot(dateaxis,Ep.abs,'LineStyle','none','Marker','.','Color','k')
-            title(['$\epsilon_P = \frac{|\overline{P} - P(t)|}...' ...
+        plot(dateaxis1,Ep.abs1,'LineStyle','none','Marker','.','Color','k')
+            title(['$\epsilon_P = \frac{|\overline{P} - P(t)|}' ...
                 '{\overline{P}}$'],'interpreter','latex','FontSize',18)
-            ylabel('$\epsilon_P\;(kW)$','interpreter','latex','FontSize',18)
+            ylabel('$\epsilon_P\;(-)$','interpreter','latex','FontSize',18)
             ylim([0 4])
     
     figure
         plot(dateaxis,Ep.diff,'LineStyle','none','Marker','.','Color','k')
             title('$\epsilon_P = \overline{P} - P(t)$','interpreter',...
                   'latex','FontSize',18)
-            ylabel('$\epsilon_P\;(kW)$','interpreter','latex','FontSize',18)
+            ylabel('$\epsilon_P\;(-)$','interpreter','latex','FontSize',18)
 
 % ----------------- Time-of-Day Ep -----------------
 

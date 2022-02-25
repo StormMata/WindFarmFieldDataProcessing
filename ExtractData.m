@@ -1,8 +1,6 @@
-function [Shear,Veer,Power,I,Time,Nacelle,OrigIndices] = ExtractData(T,data,Indices)
+function [D,Shear,Veer,Power,I,Time,Nacelle,OrigIndices] = ExtractData(T,data,Indices)
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
-
-%OrigIndices = 1;
 
 %% Shear Data
 
@@ -181,6 +179,15 @@ fprintf('\nDATETIME DATA\n\n')
     
     Veer(Veer > 360) = Veer(Veer > 360) - 360;                              % Correct values > 360 degrees  [deg]
     
-    Veer(Veer == 360) = 0;  
+    Veer(Veer == 360) = 0;
+
+%% Put Data into Structure
+
+    D.Shear   = Shear;
+    D.Veer    = Veer;
+    D.Power   = Power;
+    D.I       = I;
+    D.Time    = Time;
+    D.Nacelle = Nacelle;
 
 end

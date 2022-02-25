@@ -1,3 +1,114 @@
+%% Full Data Plots
+
+if P.WdSpHH == 1
+
+    figure;
+        plot(datetime(data.DateTime,'ConvertFrom','datenum'),data.Lidar.H104m.WndSpd,'linestyle','none','marker','.')
+            title('LiDAR Hub Height Wind Speed Measurements')
+            ylabel('WindSpeed (z = z_h) (m/s)')
+
+end
+
+if P.TI == 1
+
+    figure;
+        plot(datetime(data.DateTime,'ConvertFrom','datenum'),data.BHR62.TurbulenceIntensity,'linestyle','none','marker','.')
+            title('Turbulence Intensity at Hub Height')
+            ylabel('I (%)')
+            ylim([0 100])
+
+end
+
+if P.AAPD == 1
+
+    BinWidth = 25;
+
+    for i = 7:19
+
+        h(i-6) = subplot(1,13,i-6);
+    
+        [counts,edges,~] = histcounts(nonzeros(Dist.All(i,:)),'BinWidth',BinWidth);
+    
+        barh(edges(2:end),counts)
+    
+        str = sprintf('N = %3.0f',length(nonzeros(Dist.All(i,:))));
+    
+            if i < 16
+                text(137.5,2100,str,'HorizontalAlignment','center','FontSize',12)
+            else
+                text(137.5,100,str,'HorizontalAlignment','center','FontSize',12)
+            end
+        
+            xlim([0 275])
+            ylim([0 2200])
+            xtickangle(45)
+        
+            if i == 7
+                ylabel('Power (kW)')
+            end
+        
+            if i == 13
+                xlabel('Counts')
+                title('Power Distributions of Bins in Region 2 - All Average')
+            end
+        
+            if i ~= 7
+                set(gca,'ytick',[])
+            end
+
+    end
+    
+    for i = 1:13
+        set(h(i), 'Position', [(1/14.5*(i)) 0.1 1/17 0.81])
+    end
+
+end
+
+if P.GPD == 1
+
+    BinWidth = 25;
+
+for i = 7:19
+
+h(i-6) = subplot(1,13,i-6);
+
+[counts,edges,~] = histcounts(nonzeros(LargerDist(i,:)),'BinWidth',BinWidth);
+
+barh(edges(2:end),counts)
+
+str = sprintf('N = %3.0f',length(nonzeros(LargerDist(i,:))));
+
+if i < 16
+    text(55,2100,str,'HorizontalAlignment','center','FontSize',12)
+else
+    text(55,100,str,'HorizontalAlignment','center','FontSize',12)
+end
+
+xlim([0 110])
+ylim([0 2200])
+
+if i == 7
+    ylabel('Power (kW)')
+end
+
+if i == 13
+    xlabel('Counts')
+    title('Power Distributions of Bins in Region 2 Where Area-Average Velocity is Greater than Hub Height Velocity')
+end
+
+if i ~= 7
+    set(gca,'ytick',[])
+end
+
+end
+
+for i = 1:13
+set(h(i), 'Position', [(1/14.5*(i)) .1 1/17 .81])
+end
+
+end
+
+
 %% Wind Rose - Full Data
 
 WindSpeed     = data.Lidar.H104m.WndSpd;
@@ -156,23 +267,12 @@ set(gca,'FontSize',14);
 
 %% Additional Plots
 
-%fig1
-plot(datetime(data.DateTime,'ConvertFrom','datenum'),data.Lidar.H104m.WndSpd,'linestyle','none','marker','.')
-ylabel('WindSpeed (z = z_h) (m/s)')
-title('LiDAR Hub Height Wind Speed Measurements')
-
 %fig3
 plot(datetime(data.DateTime,'ConvertFrom','datenum'),data.BHR62.TurbulenceIntensity,'linestyle','none','marker','.')
 ylabel('I (%)')
 title('Turbulence Intensity at Hub Height')
 ylim([0 100])
 xlim([datetime(datenum('01-Apr-2020 00:00:00'),'ConvertFrom','datenum') datetime(datenum('02-Apr-2020 00:00:00'),'ConvertFrom','datenum')])
-
-%fig2
-plot(datetime(data.DateTime,'ConvertFrom','datenum'),data.BHR62.TurbulenceIntensity,'linestyle','none','marker','.')
-ylabel('I (%)')
-title('Turbulence Intensity at Hub Height')
-ylim([0 100])
 
 %fig4
 plot(datetime(data.DateTime,'ConvertFrom','datenum'),data.Lidar.H104m.WndSpd,'linestyle','none','marker','.')
@@ -306,32 +406,33 @@ subplot(1,5,5)
 
 
 
-%fig10
+%fig10 - t test significance
    subplot(2,2,[1 2])
    hold on
-   plot(WindBins,AllMean,'LineWidth',1.5,'Color','#0072BD','LineStyle','-')
-   plot(WindBins,LargerMean,'LineWidth',1.5,'Color','#D95319','LineStyle','--')
-   plot(WindBins,LessMean,'LineWidth',1.5,'Color','#A2142F','LineStyle','-.')
+   plot(WindBins,Mean.All,'LineWidth',1.5,'Color','#0072BD','LineStyle','-')
+   plot(WindBins,Mean.Larger,'LineWidth',1.5,'Color','#D95319','LineStyle','--')
+   plot(WindBins,Mean.Less,'LineWidth',1.5,'Color','#A2142F','LineStyle','-.')
    subplot(2,2,[3 4])
-   bar(WindBins,Sig)
+   bar(WindBins,Sig.Both)
    xlim([0 15])
 
 
 %fig11.1
-NBINS = 40;
+BinWidth = 25;
 for i = 7:19
 h(i-6) = subplot(1,13,i-6);
 %histogram(nonzeros(LargerDist(i,:)),NBINS)
-[counts,edges,bins] = histcounts(nonzeros(AllDist(i,:)),NBINS);
+[counts,edges,bins] = histcounts(nonzeros(Dist.All(i,:)),'BinWidth',BinWidth);
 barh(edges(2:end),counts)
-str = sprintf('N = %3.0f',length(nonzeros(AllDist(i,:))));
+str = sprintf('N = %3.0f',length(nonzeros(Dist.All(i,:))));
 if i < 16
-    text(150,2100,str,'HorizontalAlignment','center','FontSize',12)
+    text(137.5,2100,str,'HorizontalAlignment','center','FontSize',12)
 else
-    text(150,100,str,'HorizontalAlignment','center','FontSize',12)
+    text(137.5,100,str,'HorizontalAlignment','center','FontSize',12)
 end
-xlim([0 300])
+xlim([0 275])
 ylim([0 2200])
+xtickangle(45)
 if i == 7
     ylabel('Power (kW)')
 end

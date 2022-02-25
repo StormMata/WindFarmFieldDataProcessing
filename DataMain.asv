@@ -92,41 +92,97 @@ clear C
 
 %% Section 4 - Extract data and apply initial filter
 
-    [Shear,Veer,Power,I,Time,Nacelle,Indices] = ExtractData(T,data,Indices);    % Performs initial filtering
+    [D,Indices] = ExtractData(T,data,Indices);                                  % Performs initial filtering
 
 %% Section 5 - Find adjusted wind angle
 
-    [NormalWind,RelBear] = NormalInflow(Nacelle,Veer,Shear);                    % Find cosine projection of freestream wind [m/s]
+    [NormalWind] = NormalInflow(D);                                             % Find cosine projection of freestream wind [m/s]
 
 %% Section 6 - Compute Area Average of Incident Wind
 
-    [AAWind,AvgComp] = AreaAveragedVelocity(T,Shear,NormalWind);                % Area-averaged wind speed      [m/s]
+    [AAWind,AvgComp] = AreaAveragedVelocity(T,D.Shear,NormalWind);              % Area-averaged wind speed      [m/s]
 
 %% Section 7 - Fit Power Law to Shear
 
-    [PLFull]   = PowerLawFit(Shear,T,'Full');                                   % Fit power law to shear profiles
+    [PLFull]   = PowerLawFit(D.Shear,T,'Full');                                 % Fit power law to shear profiles
 
-    [PLInflec] = PowerLawFit(Shear,T,'Inflec');                                 % Fit power law to shear profiles up to inflection point
+    [PLInflec] = PowerLawFit(D.Shear,T,'Inflec');                               % Fit power law to shear profiles up to inflection point
 
 %% Section 8 - Fit Power Law to Shear
 
-    [Ekman] = EkmanFit(Shear,T);                                                % Fit power law to shear profiles
+    [Ekman] = EkmanFit(D.Shear,T);                                              % Fit power law to shear profiles
 
 %% Section 9 - Conditional Averages and Stats
 
-    [WindBins,Mean,Num,Dist,STD,Sig] = CondAvgs(T,Shear,Power,AvgComp);         % Calculate descriptive and inferential stats for data
+    [WindBins,Mean,Num,Dist,STD,Sig] = CondAvgs(T,D,AvgComp);                   % Calculate descriptive and inferential stats for data
 
 %% Section 10 - Time Series of Power Error
 
-    [Ep] = ErrorTimeSeries(Shear,Power,WindBins,Mean,Time,T);                   % Calculate and plot error time series for data
+    [Ep] = ErrorTimeSeries(D.Shear,D.Power,WindBins,Mean,D.Time,T);                   % Calculate and plot error time series for data
 
 %% Section 11 - Direction Shear and Probability Plot
 
-    [PDFs] = ShearCharacterization(Veer,T,PLFull,PLInflec,'PlotOn');            % Calculate and plot PDF for direction and speed shear
+    [PDFs] = ShearCharacterization(D.Veer,T,PLFull,PLInflec,'PlotOn');            % Calculate and plot PDF for direction and speed shear
 
 %% Section 12 - Alpha/Beta Relationship
 
-    [AlphaBeta] = AlphaBetaRel(Shear,PLFull,PDFs,Power,WindBins,T);              % Calculate and plot the relationship between shear and power
+    [AlphaBeta,bin] = AlphaBetaRel(D.Shear,PLFull,PDFs,D.Power,WindBins,T);           % Calculate and plot the relationship between shear and power
+
+angavg  = mean(reshape(data.BHR62.Pitch,10,[]));
+wndbin  = data.Lidar.H104m.WndSpd(5:10:end);
+
+angavg(isnan(angavg)) =  0;
+wndbin(isnan(angavg)) =  0;
+
+angavg(isnan(wndbin)) =  0;
+wndbin(isnan(wndbin)) =  0;
+
+bins = 0:0.5:floor(max(wndbin));
+
+for i = 1:length(bins)
+    MAD(i)  = mad((nonzeros((wndbin > bins(i) & wndbin <= (bins(i)+0.5)) .* angavg)));
+end
+%     MADhigh = angavg+4.5*MAD;
+%     MADlow  = angavg-4.5*MAD;
+
+scatter(wndbin,angavg)
+figure
+
+    hold on
+    scatter(wndbin(angavg>MADhigh),angavg(angavg>MADhigh),'red',Marker='.')
+    scatter(wndbin(angavg<MADlow),angavg(angavg<MADlow),'red',Marker='.')
+    scatter(wndbin(angavg<=MADhigh & angavg>=MADlow),angavg(angavg<=MADhigh & angavg>=MADlow),'blue',Marker='.')
+
+
+
+
+
+%% Plot Selection
+
+P.WdSpHH    = 0;
+P.TI        = 0;
+P.AAPD      = 0;
+P.GPD       = 0;
+P.LPD       = 0;
+P.WindRoseFull = 0;
+P.WindRoseAnalysis = 1;
+P.HistoPowerAA = 1;
+P.HistoPowerAALG == 1
+
+PlotSelections(P,data,Dist,D,T)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

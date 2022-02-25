@@ -1,103 +1,111 @@
-function [AvgPower] = AlphaBetaRel(Shear,PLFull,PDFs,Power,WindBins,T)
+function [AlphaBeta,AB] = AlphaBetaRel(D,PLFull,PDFs,WindBins,T,N)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
-step    = 0.1;
+AB.DSrange = N.DS(2):-N.s:N.DS(1);
+AB.SSrange = N.SS(1):N.s:N.SS(2);
 
-DSrange = 0.6:-step:-0.1;
-SSrange = -0.1:step:0.7;
+[~,~,AlphaBeta.BinIndex] = histcounts(D.Shear(T.HubRow,:),WindBins);
+AlphaBeta.BinIndex = AlphaBeta.BinIndex+1;
 
-AvgPower = zeros(length(DSrange),length(SSrange));
-Counts   = AvgPower;
+PowerBinAvg = zeros(1,length(AlphaBeta.BinIndex));
 
+for i = 1:length(AlphaBeta.BinIndex)
 
-for i = 1:length(Power)
-
-    BinIndex(i) = find(Shear(T.HubRow,i) <= WindBins,1,'first');
-%     BinIndex(i) = find(WindBins <= Shear(T.HubRow,i),1,'first');
+    PowerBinAvg(i) = mean(nonzeros((AlphaBeta.BinIndex == (AlphaBeta.BinIndex(i))) .* D.Power));
 
 end
 
-for i = 1:length(BinIndex)
+for j = 1:length(AB.DSrange)
 
-    PowerAvg(i) = mean(nonzeros((BinIndex == (BinIndex(i))) .* Power));
+    for i = 1:length(AB.SSrange)
 
-end
+        AlphaBeta.Power(j,i) = mean(nonzeros((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)) .* D.Power ./ PowerBinAvg));
 
-
-for j = 1:length(DSrange)
-
-    for i = 1:length(SSrange)
-
-        AvgPower(j,i) = mean(nonzeros((PLFull.alpha >= SSrange(i) & PLFull.alpha < (SSrange(i) + step)) .* (PDFs.DSrate >= DSrange(j) & PDFs.DSrate < (DSrange(j) + step)) .* Power ./ PowerAvg));
-
-
-        
-        Counts(j,i)   = sum((PLFull.alpha >= SSrange(i) & PLFull.alpha < (SSrange(i) + step)) .* (PDFs.DSrate >= DSrange(j) & PDFs.DSrate < (DSrange(j) + step)));
+        AlphaBeta.Counts(j,i)   = sum((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)));
 
     end
 
 end
 
-AvgPower(Counts < 15) = NaN;
+AlphaBeta.Power(AlphaBeta.Counts < 15) = NaN;
 
-% Verify proper orientation
-%      AvgPower(1,1)   = 5;
-%     AvgPower(1,end) = 5000;
-%     AvgPower(8,1)   = 5000;
-%     AvgPower(6,1)   = 2500;
+AlphaBeta.PowerLH = AlphaBeta.Power;
 
-    Counts(1,1)   = 2500;
-    Counts(1,end) = 5000;
-    Counts(8,1)   = 5000;
-    Counts(6,1)   = 2500;
+AB.DS = N.DS;
+AB.SS = N.SS;
+AB.s  = N.s;
 
-%% Plots
+AB.xlow  = AB.SSrange(1) - AB.s/2;                                                % Set x axis minimum
+AB.xhigh = AB.SSrange(end) - AB.s/2;                                              % Set x axis maximum
+
+%% Plots - Full Colormap
 
 figure;
-%     imagesc(SSrange,flip(DSrange),AvgPower)
-    imagesc(SSrange,DSrange,AvgPower)
-     axis xy
-    colormap([1 1 1; parula(256)])
+    imagesc(AB.SSrange,AB.DSrange,AlphaBeta.Power);
+    axis xy                                                                 % Flip image
+    colormap([1 1 1; gray(256)])                                            % Bi-tone colomap
     colorbar
+
     xlabel('Speed Shear (\alpha)')
     ylabel('Direction Shear (\circ m^{-1})')
+    ylabel(colorbar('eastoutside'),'Normalized Power (-)')
+    xlim([AB.xlow AB.xhigh])
     hold on
-    for i = 1:length(SSrange)
-        xline(SSrange(i)-step/2)
+
+    for i = 1:length(AB.SSrange)                                               % Vertical brid lines
+        xline(AB.SSrange(i)-AB.s/2)
     end
-    for i = 1:length(DSrange)
-        yline(DSrange(i)-step/2)
+
+    for i = 1:length(AB.DSrange)                                               % Horizontal brid lines
+        yline(AB.DSrange(i)-AB.s/2)
     end
-    x = [SSrange 0.8];
+
+    x = [AB.SSrange 0.8];                                                      % Add threshold line
     y = 2/3*x - 0.1;
     plot(x,y,'color','r','LineWidth',2)
+
     hold off
 
-% figure;
-%     HM = heatmap(Counts);
-%     HM.NodeChildren(3).YDir='normal';
+%% Plots - Simple Above/Below Case
 
+low  = min(AlphaBeta.Power,[],'all');                                              % Find minimum
+high = max(AlphaBeta.Power,[],'all');                                              % Find maximum
 
-% % Matrix(isnan(Matrix)) = 0;
-% 
-% % HM = heatmap(AvgPower)
-% % HM.NodeChildren(3).YDir='normal';
-% % h.XDisplayLabels = SSrange;
-% % h.YDisplayLabels = DSrange;
-% HM = imagesc(SSrange,flip(DSrange),AvgPower);
-% colormap([1 1 1; parula(256)])
-% % HM = imagesc(Matrix);
-% % set(gca,'YDir','reverse');
-% axis xy
-% % YDisplayLabels = flip(DSrange);
-% % ax = gca;
-% % ax.YDir = 'normal'
-% % set(gca,'YDir','normal') 
-% % % Initialize a color map array of 256 colors.
-% % colorMap = jet(256);
-% % % Apply the colormap and show the colorbar
-% % colormap(colorMap);
-% % colorbar;
+AlphaBeta.PowerLH(AlphaBeta.Power<1 & ~isnan(AlphaBeta.Power)) = low;                              % Convert all values >1 to maximum
+AlphaBeta.PowerLH(AlphaBeta.Power>=1) = high;                                               % Convert all values <1 to minimum
+
+if abs(high-1) > abs(1-low)                                                 % Calibrate colormap values
+    AlphaBeta.PowerLH(end,end) = 1-abs(high-1);
+else
+    AlphaBeta.PowerLH(end,end) = 1+abs(low-1);
+end
+
+figure;
+    h = imagesc(AB.SSrange,AB.DSrange,AlphaBeta.PowerLH);
+    axis xy                                                                 % Flip image
+    colormap([0.66 0.66 0.66; .33 .33 .33])                                 % Bi-tone colomap
+    colorbar
+    set(h,'alphadata',~isnan(AlphaBeta.PowerLH))                                     % Set NaNs to white
+
+    xlabel('Speed Shear (\alpha)')
+    ylabel('Direction Shear (\circ m^{-1})')
+    ylabel(colorbar('eastoutside'),'Normalized Power (-)')
+    xlim([AB.xlow AB.xhigh])
+    hold on
+
+    for i = 1:length(AB.SSrange)                                               % Vertical brid lines
+        xline(AB.SSrange(i)-AB.s/2)
+    end
+
+    for i = 1:length(AB.DSrange)                                               % Horizontal brid lines
+        yline(AB.DSrange(i)-AB.s/2)
+    end
+
+    x = [AB.SSrange 0.8];                                                      % Add threshold line
+    y = 2/3*x - 0.1;
+    plot(x,y,'color','r','LineWidth',2)
+
+    hold off
 
 end
