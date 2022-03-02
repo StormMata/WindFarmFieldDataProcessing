@@ -70,6 +70,13 @@ function [D,Shear,Veer,Power,I,Time,Nacelle,OrigIndices] = ExtractData(T,data,In
 
     Time = Time(Indices);                                                                   % Apply initial filter          [-]
 
+%% Pitch
+
+    PitchAng = data.(strcat('BHR',num2str(T.TOI,'%02.f'))).Pitch;                           % Retrieve blade pitch angle    [deg]
+
+    PitchAng = PitchAng(Indices);                                                           % Apply initial filter          [deg]
+
+
 %% Create new indices vector from deletions
 
     OrigIndices = Indices .* ShearIndices .* VeerIndices .* PowerIndices .* TurbIndices;    % Preserve the indices of the original data
@@ -97,6 +104,8 @@ function [D,Shear,Veer,Power,I,Time,Nacelle,OrigIndices] = ExtractData(T,data,In
     Shear       = flip(Shear);                                                              % Flip array so that top row is 200m and bottom is 43m
 
     Veer        = flip(Veer);                                                               % Flip array so that top row is 200m and bottom is 43m
+
+    PitchAng    = PitchAng(Indices);                                                        % Filter blade pitch angle      [deg]
 
 
 %% Validation
@@ -189,5 +198,6 @@ fprintf('\nDATETIME DATA\n\n')
     D.I       = I;
     D.Time    = Time;
     D.Nacelle = Nacelle;
+    D.Pitch   = PitchAng;
 
 end

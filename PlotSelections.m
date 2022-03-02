@@ -1,4 +1,4 @@
-function [] = PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta)
+function [] = PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,PDFs,PLFull,PLInflec,Ekman)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -162,7 +162,7 @@ if P.WindRoseFull == 1
     
     figure;
     
-    bins = fliplr([2:2:max(WindSpeed)-1,20]);                                   % Wind speed bins
+    bins = fliplr([2:1.5:max(WindSpeed)+1]);                                   % Wind speed bins
     
     pax       = polaraxes;                                                      % Polar axes handle
     
@@ -190,6 +190,7 @@ if P.WindRoseFull == 1
     set(gca,'rticklabel',[])                                                    % Remove default radial markers
     set(gca,'FontSize',16)
     
+    TotalPoints = sum(WindSpeed>0);
     axlims    = rlim;                                                           % Find radial limits
     positions = linspace(0,axlims(2),5);                                        % Define new radial marker spacing
     rticks(positions);                                                          % Set new radial marker positions
@@ -200,9 +201,9 @@ if P.WindRoseFull == 1
     h.DisplayStyle = 'stairs';                                                  % Set outline style
     h.EdgeColor    = [0 0 0];                                                   % Set color to black                                                   
     
-    text(angle, positions(2), sprintf('%2.0f%%',100*positions(2)/(axlims(2))),'HorizontalAlignment','center','FontSize',12);
-    text(angle, positions(3), sprintf('%2.0f%%',100*positions(3)/(axlims(2))),'HorizontalAlignment','center','FontSize',12);
-    text(angle, positions(4), sprintf('%2.0f%%',100*positions(4)/(axlims(2))),'HorizontalAlignment','center','FontSize',12);
+    text(angle, positions(2), sprintf('%2.0f%%',100*positions(2)/TotalPoints),'HorizontalAlignment','center','FontSize',12);
+    text(angle, positions(3), sprintf('%2.0f%%',100*positions(3)/TotalPoints),'HorizontalAlignment','center','FontSize',12);
+    text(angle, positions(4), sprintf('%2.0f%%',100*positions(4)/TotalPoints),'HorizontalAlignment','center','FontSize',12);
     
     hold off;
 
@@ -243,14 +244,15 @@ if P.WindRoseAnalysis == 1
     set(gca,'rticklabel',[])                                                    % Remove default radial markers
     set(gca,'FontSize',16)
     
+    TotalPoints = sum(WindSpeed>0);
     axlims    = rlim;                                                           % Find radial limits
     positions = linspace(0,axlims(2),5);                                        % Define new radial marker spacing
     rticks(positions);                                                          % Set new radial marker positions
     angle     = deg2rad(70);                                                    % Angle of radial marker vector                                                 
     
-    text(angle, positions(2), sprintf('%2.0f%%',100*positions(2)/(axlims(2))),'HorizontalAlignment','center','FontSize',12);
-    text(angle, positions(3), sprintf('%2.0f%%',100*positions(3)/(axlims(2))),'HorizontalAlignment','center','FontSize',12);
-    text(angle, positions(4), sprintf('%2.0f%%',100*positions(4)/(axlims(2))),'HorizontalAlignment','center','FontSize',12);
+    text(angle, positions(2), sprintf('%2.0f%%',100*positions(2)/TotalPoints),'HorizontalAlignment','center','FontSize',12);
+    text(angle, positions(3), sprintf('%2.0f%%',100*positions(3)/TotalPoints),'HorizontalAlignment','center','FontSize',12);
+    text(angle, positions(4), sprintf('%2.0f%%',100*positions(4)/TotalPoints),'HorizontalAlignment','center','FontSize',12);
     
     hold off;
 
@@ -433,12 +435,183 @@ if P.AlphaBetaLH == 1
 
 end
 
+if P.DSprob == 1
+
+    figure;                                                                 % 100 bins
+        [PDFs.DSProb1,PDFs.DSEdges1] = histcounts(PDFs.DSrate,110,...
+            'Normalization','probability','BinLimits',[-0.6 0.8]);
+        plot(PDFs.DSEdges1(1:end-1),PDFs.DSProb1,'Color','k','LineWidth',1.5);
+        title('Direction Shear Probability Distribution')
+        xlabel('Direction Shear (\circ m^{-1})')
+        ylabel('Probability of Occurrence')
+        xlim([-0.6 0.8])
+
+end
+
+if P.SSFull == 1
+
+    figure;                                                                 % Full profile fit
+        [PDFs.SSProb1,PDFs.SSEdges1] = histcounts(PLFull.alpha,...
+            'Normalization','probability','BinLimits',[-0.75 1.5]);
+        plot(PDFs.SSEdges1(1:end-1),PDFs.SSProb1,'Color','k','LineWidth',1.5);
+        title('Speed Shear Probability Distribution - Full Fit')
+        xlabel('Speed Shear (\alpha)')
+        ylabel('Probability of Occurrence')
+        xlim([-0.75 1.5])
+
+end
+
+if P.SSInflec == 1
+
+    figure;                                                                 % Inflection profile fit
+        [PDFs.SSProb2,PDFs.SSEdges2] = histcounts(PLInflec.alpha,...
+            'Normalization','probability','BinLimits',[-0.5 1.5]);
+        plot(PDFs.SSEdges2(1:end-1),PDFs.SSProb2,'Color','k','LineWidth',1.5);
+        title('Speed Shear Probability Distribution - Inflection Fit')
+        xlabel('Speed Shear (\alpha)')
+        ylabel('Probability of Occurrence')
+        xlim([-0.35 1.4])
+
+end
+
+if P.EkmanProb == 1
+
+    figure;                                                                 % Inflection profile fit
+        [EkProb,EkEdges] = histcounts(Ekman.K,...
+            'Normalization','probability','BinLimits',[-0.5 1.5]);
+        plot(EkEdges(1:end-1),EkProb,'Color','k','LineWidth',1.5);
+        title('Ekman Parameter Probability Distribution')
+        xlabel('Eddy Diffusivity (m^2 s ^{-1})')
+        ylabel('Probability of Occurrence')
+
+end
+
+if P.SSTOD == 1
+
+    figure;
+        plot(PDFs.TODAxis,PDFs.DSTOD,'LineStyle','none','Marker','.','Color','k')
+        title('Direction Shear Evolution by Time of day')
+        xlabel('Time of Day')
+        xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
+        ylabel('Direction Shear (\circ m^{-1})')
+
+    figure;
+        plot(PDFs.TODAxis,PDFs.SSTODFull,'LineStyle','none','Marker','.','Color','k')
+        title('Speed Shear Evolution by Time of day - Full Profile Fit')
+        xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
+        ylabel('Speed Shear (\alpha)')
+
+    figure;
+        plot(PDFs.TODAxis,PDFs.SSTODInflec,'LineStyle','none','Marker','.','Color','k')
+        title('Speed Shear Evolution by Time of day - Partial Profile Fit')
+        xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
+        ylabel('Speed Shear (\alpha)')
+
+end
 
 
+if P.SSTODAVG == 1
 
+    figure;
+        plot(PDFs.TODAvgAxis,PDFs.DSTODAvg,'LineStyle','-','LineWidth',1.5,'Color','k')
+        hold on
+        title('Speed and Direction Shear Evolution by Time of day')
+        xlabel('Time of Day')
+        ylabel('Direction Shear (\circ m^{-1})')
+        ylim([-0.05 0.5])
 
+        yyaxis right
+        plot(PDFs.TODAvgAxis,PDFs.SSTODAvgFull,'LineStyle','-','LineWidth',1.5)
+        plot(PDFs.TODAvgAxis,PDFs.SSTODAvgInflec,'LineStyle','--','LineWidth',1.5)
+        ylabel('Speed Shear (\alpha)')
+        xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
+        ylim([-0.05 0.5])
+        legend('Direction Shear','Speed Shear - Full Alpha','Speed Shear - Partial Alpha')
+        hold off
 
+end
 
+if P.EkTOD == 1
+
+    figure;
+        plot(PDFs.TODAxis,PDFs.EkTOD,'LineStyle','none','Marker','.','Color','k')
+        title('Ekman Parameter Evolution by Time of day')
+        xlabel('Time of Day')
+        xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
+        ylabel('Eddy Diffusivity (m^2 s ^{-1})')
+        ylim([0 0.5])
+
+end
+
+if P.EkTODAVG == 1
+
+    figure;
+        plot(PDFs.TODAvgAxis,PDFs.DSTODAvg,'LineStyle','-','LineWidth',1.5,'Color','k')
+        hold on
+        title('[Average] Ekman Parameter and Direction Shear Evolution by Time of day')
+        xlabel('Time of Day')
+        ylabel('Direction Shear (\circ m^{-1})')
+        ylim([-0.05 0.5])
+
+        yyaxis right
+        plot(PDFs.TODAvgAxis,PDFs.EkTODAvg,'LineStyle','-','LineWidth',1.5)
+        ylabel('Eddy Diffusivity (m^2 s ^{-1})')
+        xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
+%         ylim([-0.05 0.5])
+        hold off
+
+    figure;
+        plot(PDFs.TODAvgAxis,PDFs.SSTODAvgFull,'LineStyle','-','LineWidth',1.5,'Color','k')
+        ylabel('Speed Shear (\alpha)')
+        hold on
+        title('[Average] Ekman Parameter and Speed Shear Evolution by Time of day (Full Alpha)')
+        xlabel('Time of Day')
+        ylabel('Speed Shear (\alpha)')
+        ylim([-0.05 0.5])
+
+        yyaxis right
+        plot(PDFs.TODAvgAxis,PDFs.EkTODAvg,'LineStyle','-','LineWidth',1.5)
+        ylabel('Eddy Diffusivity (m^2 s ^{-1})')
+        xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
+%         ylim([-0.05 0.5])
+        hold off
+
+end
+
+if P.EkTODMED == 1
+
+    figure;
+        plot(PDFs.TODAvgAxis,PDFs.DSTODAvg,'LineStyle','-','LineWidth',1.5,'Color','k')
+        hold on
+        title('[Median] Ekman Parameter and Direction Shear Evolution by Time of day')
+        xlabel('Time of Day')
+        ylabel('Direction Shear (\circ m^{-1})')
+        ylim([-0.05 0.5])
+
+        yyaxis right
+        plot(PDFs.TODAvgAxis,PDFs.EkTODMed,'LineStyle','-','LineWidth',1.5)
+        ylabel('Eddy Diffusivity (m^2 s ^{-1})')
+        xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
+        ylim([-0.05 0.5])
+        hold off
+
+    figure;
+        plot(PDFs.TODAvgAxis,PDFs.SSTODAvgFull,'LineStyle','-','LineWidth',1.5,'Color','k')
+        ylabel('Speed Shear (\alpha)')
+        hold on
+        title('[Median] Ekman Parameter and Speed Shear Evolution by Time of day (Full Alpha)')
+        xlabel('Time of Day')
+        ylabel('Speed Shear (\alpha)')
+        ylim([-0.05 0.5])
+
+        yyaxis right
+        plot(PDFs.TODAvgAxis,PDFs.EkTODMed,'LineStyle','-','LineWidth',1.5)
+        ylabel('Eddy Diffusivity (m^2 s ^{-1})')
+        xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
+        ylim([-0.05 0.5])
+        hold off
+
+end
 
 % if P.HistoPower == 1
 % 

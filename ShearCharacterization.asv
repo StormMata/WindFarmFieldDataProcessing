@@ -34,9 +34,7 @@ Ekman.K(isnan(Ekman.K))               = 0;
     
             Indices = (H == i & MN == j);
         
-%             TOD(index,:) = Indices .* PDFs.DSrate;
-
-            PDFs.DSTOD(index) = mean(nonzeros(Indices .* PDFs.DSrate));
+            TOD(index,:) = Indices .* PDFs.DSrate;
     
             j     = j + 1;
     
@@ -49,11 +47,11 @@ Ekman.K(isnan(Ekman.K))               = 0;
     
     end
 
-%     for i = 1:size(TOD,1)
-%     
-%         PDFs.DSTOD(i) = mean(nonzeros(TOD(i,:)));
-%     
-%     end
+    for i = 1:size(TOD,1)
+    
+        PDFs.DSTOD(i) = mean(nonzeros(TOD(i,:)));
+    
+    end
 
 %% Find Speed Shear Evolution by TOD
 
@@ -67,11 +65,8 @@ Ekman.K(isnan(Ekman.K))               = 0;
     
             Indices = (H == i & MN == j);
         
-%             TODFull(index,:)   = Indices .* PLFull.alpha;
-%             TODInflec(index,:) = Indices .* PLInflec.alpha;
-
-            PDFs.SSTODFull(index)   = mean(nonzeros(Indices .* PLFull.alpha));
-            PDFs.SSTODInflec(index) = mean(nonzeros(Indices .* PLInflec.alpha));
+            TODFull(index,:)   = Indices .* PLFull.alpha;
+            TODInflec(index,:) = Indices .* PLInflec.alpha;
     
             j     = j + 1;
     
@@ -84,14 +79,50 @@ Ekman.K(isnan(Ekman.K))               = 0;
     
     end
 
-%     for i = 1:size(TODFull,1)
-%     
-%         PDFs.SSTODFull(i)   = mean(nonzeros(TODFull(i,:)));
-%         PDFs.SSTODInflec(i) = mean(nonzeros(TODInflec(i,:)));
-%     
-%     end
+    for i = 1:size(TODFull,1)
+    
+        PDFs.SSTODFull(i)   = mean(nonzeros(TODFull(i,:)));
+        PDFs.SSTODInflec(i) = mean(nonzeros(TODInflec(i,:)));
+    
+    end
 
 %% Find Ekman Parameter Evolution by TOD
+
+Test(isnan(Ekman.K))               = 0;
+    index = 1;
+    i     = 0;
+    j     = 0;
+    
+    while i <= 23
+    
+        while j <= 59
+    
+            Indices = (H == i & MN == j);
+        
+%             TOD(index,:) = Indices .* Ekman.K;
+            PDFs.EkTODmedianN(index) = median(nonzeros(Indices .* Ekman.K));
+    
+            j     = j + 1;
+    
+            index = index + 1;
+    
+        end
+    
+        i = i + 1;
+        j = 0;
+    
+    end
+
+    for i = 1:size(TOD,1)
+    
+        PDFs.EkTODmedian(i) = median(nonzeros(TOD(i,:)));
+        PDFs.EkTODmean(i)   = mean(nonzeros(TOD(i,:)));
+    
+    end
+
+
+
+
 
     index = 1;
     i     = 0;
@@ -103,8 +134,7 @@ Ekman.K(isnan(Ekman.K))               = 0;
     
             Indices = (H == i & MN == j);
         
-            PDFs.EkTODmedian(index) = median(nonzeros(Indices .* Ekman.K));
-            PDFs.EkTODmean(index)   = mean(nonzeros(Indices .* Ekman.K));
+            TOD(index,:) = Indices .* Ekman.K;
     
             j     = j + 1;
     
@@ -114,6 +144,13 @@ Ekman.K(isnan(Ekman.K))               = 0;
     
         i = i + 1;
         j = 0;
+    
+    end
+
+    for i = 1:size(TOD,1)
+    
+        PDFs.EkTODmedian(i) = median(nonzeros(TOD(i,:)));
+        PDFs.EkTODmean(i)   = mean(nonzeros(TOD(i,:)));
     
     end
 
