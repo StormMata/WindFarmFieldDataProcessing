@@ -131,4 +131,11 @@ PDFs.TODAvgAxis     = duration(minutes(linspace(0,1439,length(PDFs.DSTODAvg))),'
 %% Find Direction and Speed Shear Evolution by Height
 
 
+Heights = flip(T.Heights)';
+dudz  = gradient(D.Shear(:,160))./gradient(Heights);                % Calculate sign of shear profile
+            index = find(dudz < 0, 1, 'last')
+
+
+
+
 end

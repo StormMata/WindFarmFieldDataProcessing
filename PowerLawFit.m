@@ -43,7 +43,7 @@ warning('off')                                                              % Tu
             dudz  = gradient(Shear(:,i))./gradient(Heights);                % Calculate sign of shear profile
             index = find(dudz < 0, 1, 'last');                              % Find first point of negative shear
             Shear(1:index,i) = NaN;                                         % Set all measurements above that point to NaN
-            Heights(1:index) = NaN;                                         % Do same for heights            
+            Heights(1:index) = NaN;                                         % Do same for heights
 
         end
     
@@ -60,21 +60,29 @@ warning('off')                                                              % Tu
         opts.Display    = 'Off';
         opts.StartPoint = 1/7;                                              % Required for curve-fitting toolbox
     
-    try
-    
-        [fitresult, gof] = fit(xdata, ydata, ft, opts);                     % Perform fit
+        PowLaw.InflecHeight(i)  = NaN;                                      % Store Inflection height       [m]
+
+        try
         
-        PowLaw.alpha(i) = fitresult.a;                                      % Store alpha for each profile
-        PowLaw.R(i)     = gof.rsquare;                                      % Store R^2 value for each fit
-        PowLaw.RMSE(i)  = gof.rmse;                                         % Store Root Mean Square Error for each fit
+            [fitresult, gof] = fit(xdata, ydata, ft, opts);                 % Perform fit
+            
+            PowLaw.alpha(i) = fitresult.a;                                  % Store alpha for each profile
+            PowLaw.R(i)     = gof.rsquare;                                  % Store R^2 value for each fit
+            PowLaw.RMSE(i)  = gof.rmse;                                     % Store Root Mean Square Error for each fit
     
-    catch
-    
-        PowLaw.alpha(i) = NaN;                                              % If curve fit fails, store NaN for alpha
-        PowLaw.R(i)     = NaN;                                              % If curve fit fails, store NaN for R^2
-        PowLaw.RMSE(i)  = NaN;                                              % If curve fit fails, store NaN for Root Mean Square Error
-    
-    end
+        catch
+        
+            PowLaw.alpha(i)         = NaN;                                  % If curve fit fails, store NaN for alpha
+            PowLaw.R(i)             = NaN;                                  % If curve fit fails, store NaN for R^2
+            PowLaw.RMSE(i)          = NaN;                                  % If curve fit fails, store NaN for Root Mean Square Error
+        
+        end
+
+        if ~isnan(PowLaw.alpha(i)) & index ~= 1 & index ~= 12
+
+            PowLaw.InflecHeight(i) = Heights(index+1);                      % Store Inflection height       [m]
+
+        end
     
         if mod(i,10)==0
             p = i/size(Shear,2)*100;

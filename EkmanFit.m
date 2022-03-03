@@ -52,7 +52,7 @@ for i = 1:size(Shear,2)
     
         Ekman.K(i)       = NaN;                                             % If curve fit fails, store NaN for eddy diffusivity
         Ekman.G(i)       = NaN;                                             % If curve fit fails, store NaN for geostrophic wind
-        Ekman.rsquare(i) = NaN;                                             % If curve fit fails, store NaN for R^2
+        Ekman.R(i)       = NaN;                                             % If curve fit fails, store NaN for R^2
         Ekman.RMSE(i)    = NaN;                                             % If curve fit fails, store NaN for RMSE
     
     end

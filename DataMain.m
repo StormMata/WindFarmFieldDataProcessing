@@ -122,7 +122,7 @@ clear C
 
 %% Section 11 - Direction Shear and Probability Plot
 
-    [PDFs] = ShearCharacterization(D,T,PLFull,PLInflec,Ekman);             % Calculate and plot PDF for direction and speed shear
+    [PDFs] = ShearCharacterization(D,T,PLFull,PLInflec,Ekman);                  % Calculate and plot PDF for direction and speed shear
 
 %% Section 12 - Alpha/Beta Relationship
 
@@ -166,48 +166,51 @@ figure
 
 %% Plot Selection
 
-% ------------ Polar Plots ------------
+% --- Polar Plots ---------------------------------------------------------
+P.WindRoseFull      = 0;    % Full LiDAR wind data
+P.WindRoseAnalysis  = 0;    % Only filtered LiDAR data
 
-P.WindRoseFull      = 0;            % Full LiDAR wind data
-P.WindRoseAnalysis  = 0;            % Only filtered LiDAR data
+% --- Time ----------------------------------------------------------------
+P.WdSpHH            = 0;    % Hub height wind speed
+P.TI                = 0;    % Turbulence intensity
 
-% ------------ Time ------------
-P.WdSpHH            = 0;            % Hub height wind speed
-P.TI                = 0;            % Turbulence intensity
+% --- Time of Day ---------------------------------------------------------
+P.EpTODHisto        = 0;    % Day and night hourly power error histograms
+P.EpTOD             = 0;    % Power Error
+P.EpTODAvg          = 0;
+P.SSTOD             = 0;    % Speed and Direction shear evolution
+P.SSTODAVG          = 0;    % Speed and Direction shear evolution, 10-min averages
+P.EkTOD             = 0;    % Ekman parameter evolution
+P.EkTODAVG          = 0;    % Ekman parameter evolution, 10-min AVERAGES
+P.EkTODMED          = 0;    % Ekman parameter evolution, 10-min MEDIANS
+P.InflecTODHisto    = 0;    % Inflection height hourly histograms
 
-% ------------ Time of Day ------------
-P.SSTOD             = 0;            % Speed and Direction shear evolution
-P.SSTODAVG          = 0;            % Speed and Direction shear evolution, 10-min averages
-P.EkTOD             = 0;            % Ekman parameter evolution
-P.EkTODAVG          = 0;            % Ekman parameter evolution, 10-min AVERAGES
-P.EkTODMED          = 0;            % Ekman parameter evolution, 10-min MEDIANS
+% --- Counts --------------------------------------------------------------
+P.AAPD              = 0;    % Vertical hist of power by wind speed bins, all average
+P.GPD               = 0;    % Vertical hist of power by wind speed bins, AA > Hub
+P.LPD               = 0;    % Vertical hist of power by wind speed bins, AA < Hub
 
-% ------------ Counts ------------
-P.AAPD              = 0;            % Vertical hist of power by wind speed bins, all average
-P.GPD               = 0;            % Vertical hist of power by wind speed bins, AA > Hub
-P.LPD               = 0;            % Vertical hist of power by wind speed bins, AA < Hub
+% --- Wind Speed Bins -----------------------------------------------------
+P.HistoPowerAA      = 1;    % Average power with histogram overlaid, all average
+P.HistoPowerAALG    = 0;    % Average power with histogram overlaid, all average, AA < Hub, AA > Hub
 
-% ------------ Wind Speed Bins ------------
-P.HistoPowerAA      = 0;            % Average power with histogram overlaid, all average
-P.HistoPowerAALG    = 0;            % Average power with histogram overlaid, all average, AA < Hub, AA > Hub
+% --- Speed Shear Alpha ---------------------------------------------------
+P.AlphaBetaFull     = 0;    % Full color direction shear heatmap
+P.AlphaBetaMono     = 0;    % Monochromatic color direction shear heatmap
+P.AlphaBetaLH       = 0;    % Two-color direction shear heatmap
+P.SSFull            = 0;    % Probability of occurence, Full profile fit
+P.SSInflec          = 0;    % Probability of occurence, Partial profile fit
 
-% ------------ Speed Shear Alpha ------------
-P.AlphaBetaFull     = 0;            % Full color direction shear heatmap
-P.AlphaBetaMono     = 0;            % Monochromatic color direction shear heatmap
-P.AlphaBetaLH       = 0;            % Two-color direction shear heatmap
-P.SSFull            = 0;            % Probability of occurence, Full profile fit
-P.SSInflec          = 0;            % Probability of occurence, Partial profile fit
+% --- Direction Shear -----------------------------------------------------
+P.DSprob            = 0;    % Probability of occurence
 
-% ------------ Direction Shear ------------
-P.DSprob            = 0;            % Probability of occurence
-
-% ------------ Ekman Parameter ------------
-P.EkmanProb         = 1;            % Probability of occurence   
-
-
+% --- Ekman Parameter -----------------------------------------------------
+P.EkmanProb         = 0;    % Probability of occurence   
 
 
-PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,PDFs,PLFull,PLInflec,Ekman)
+
+
+PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,PDFs,PLFull,PLInflec,Ekman,Ep)
 
 
 

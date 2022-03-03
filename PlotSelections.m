@@ -1,4 +1,4 @@
-function [] = PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,PDFs,PLFull,PLInflec,Ekman)
+function [] = PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,PDFs,PLFull,PLInflec,Ekman,Ep)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -407,6 +407,7 @@ if P.AlphaBetaLH == 1
         end
     
     figure;
+%         h = pcolor(AB.SSrange,AB.DSrange,AlphaBeta.PowerLH);
         h = imagesc(AB.SSrange,AB.DSrange,AlphaBeta.PowerLH);
         axis xy                                                                 % Flip image
         colormap([0.66 0.66 0.66; .33 .33 .33])                                 % Bi-tone colomap
@@ -592,7 +593,7 @@ if P.EkTODMED == 1
         plot(PDFs.TODAvgAxis,PDFs.EkTODMed,'LineStyle','-','LineWidth',1.5)
         ylabel('Eddy Diffusivity (m^2 s ^{-1})')
         xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
-        ylim([-0.05 0.5])
+        ylim([0 0.35])
         hold off
 
     figure;
@@ -608,10 +609,331 @@ if P.EkTODMED == 1
         plot(PDFs.TODAvgAxis,PDFs.EkTODMed,'LineStyle','-','LineWidth',1.5)
         ylabel('Eddy Diffusivity (m^2 s ^{-1})')
         xlim([PDFs.TODAxis(1) PDFs.TODAxis(end)+minutes(1)])
-        ylim([-0.05 0.5])
+        ylim([-0.015 0.25])
         hold off
 
 end
+
+if P.EpTOD == 1
+
+    figure;
+        scatter(Ep.TODAxis,Ep.TODmean,'Marker','.','MarkerEdgeColor','k')
+        hold on;
+
+        y = mean(reshape(Ep.TODmean,10,[]));
+        x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+    
+        plot(x,y,'Color','r','LineWidth',1.5)
+
+        title('Power Error Evolution by Time of Day')
+        xlabel('Time of Day')
+        ylabel('\epsilon_P (-)')
+        legend('1 - Minute Average', '10 - Minute Average')
+
+end
+
+if P.EpTODAvg == 1
+
+    figure;
+        y = mean(reshape(Ep.TODmean,10,[]));
+        x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+    
+        plot(x,y,'Color','k','LineWidth',1.5)
+
+end
+
+if P.EpTODHisto == 1
+
+% [1 2 3 4 5 6 7 8 9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24] - Ep.dist index
+% [2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 1]  - Cooresponding hour in row
+
+    % -------------- Hourly Histogram: Day Time --------------
+    
+        DayFig   = figure;
+        BinWidth = 0.02;
+    
+            HourIndices = [6 7 8 9  10 11 12 13 14 15 16 17;
+                           7 8 9 10 11 12 13 14 15 16 17 18];
+        
+            for i = 1:12
+    
+                h(i) = subplot(1,12,i);
+    
+                [counts,edges,~] = histcounts(nonzeros(Ep.dist(HourIndices(2,i),:)),'BinWidth',BinWidth);
+                barh(edges(2:end),counts)
+    
+                str = sprintf('N = %3.0f',length(nonzeros(Ep.dist(HourIndices(2,i),:))));
+                text(237.5,1.1,str,'HorizontalAlignment','center','FontSize',12)
+                xlim([0 475])
+                ylim([0 1.2])
+                xtickangle(45)
+                str = sprintf('%02.0f:00',HourIndices(1,i));
+                title(str)
+        
+                    if i ~= 1
+        
+                        set(gca,'ytick',[])
+        
+                    end
+            end
+            
+            AxHandle=axes(DayFig,'visible','off'); 
+                AxHandle.Title.Visible   ='on';
+                AxHandle.XLabel.Visible  ='on';
+                AxHandle.XLabel.Position = [0.5 0];
+                xlabel(AxHandle,'Counts');
+                AxHandle.YLabel.Visible  ='on';
+                AxHandle.YLabel.Position = [0 0.5];
+                ylabel(AxHandle,'\epsilon_P (-)');
+                title(AxHandle,'\epsilon_P Distribution by Hour');
+            
+            for i = 1:12
+        
+                set(h(i), 'Position', [(1/13*(i))-0.02 .09 1/15 .825])
+        
+            end
+    
+    % -------------- Hourly Histogram: Night Time --------------
+    
+        NightFig   = figure;
+        BinWidth = 0.02;
+    
+        HourIndices = [18 19 20 21 22 23 0 1 2 3 4 5;
+                       19 20 21 22 23 24 1 2 3 4 5 6];
+    
+        for i = 1:12
+    
+            h(i) = subplot(1,12,i);
+    
+            [counts,edges,~] = histcounts(nonzeros(Ep.dist(HourIndices(2,i),:)),'BinWidth',BinWidth);
+            barh(edges(2:end),counts)
+    
+            str = sprintf('N = %3.0f',length(nonzeros(Ep.dist(HourIndices(2,i),:))));
+            text(237.5,1.1,str,'HorizontalAlignment','center','FontSize',12)
+            xlim([0 475])
+            ylim([0 1.2])
+            xtickangle(45)
+            str = sprintf('%02.0f:00',HourIndices(1,i));
+            title(str)
+    
+                if i ~= 1
+    
+                    set(gca,'ytick',[])
+    
+                end
+    
+        end
+        
+        AxHandle=axes(NightFig,'visible','off'); 
+            AxHandle.Title.Visible   ='on';
+            AxHandle.XLabel.Visible  ='on';
+            AxHandle.XLabel.Position = [0.5 0];
+            xlabel(AxHandle,'Counts');
+            AxHandle.YLabel.Visible  ='on';
+            AxHandle.YLabel.Position = [0 0.5];
+            ylabel(AxHandle,'\epsilon_P (-)');
+            title(AxHandle,'\epsilon_P Distribution by Hour');
+        
+        for i = 1:12
+    
+            set(h(i), 'Position', [(1/13*(i))-0.02 .09 1/15 .825])
+    
+        end
+    
+end
+
+if P.InflecTODHisto == 1
+
+    [~,~,~,H,~,~] = datevec(D.Time);
+
+    HourlyDist = zeros(24,length(PLInflec.InflecHeight));
+
+    for i = 1:24
+    
+        Indices = (H == i-1);
+    
+        HourlyDist(i,:) = Indices .* PLInflec.InflecHeight;
+    
+    end
+
+    % -------------- Hourly Histogram: Night Time --------------
+
+    NightFig = figure;
+
+    HourIndices = [18 19 20 21 22 23 0 1 2 3 4 5;
+                   19 20 21 22 23 24 1 2 3 4 5 6];
+
+    for i = 1:12
+
+        h(i) = subplot(1,12,i);
+
+        [counts,edges,~] = histcounts(nonzeros(HourlyDist(HourIndices(2,i),:)),'binedges',T.Heights);
+        barh(edges(2:end),counts)
+
+        str = sprintf('N = %3.0f',length(nonzeros(HourlyDist(HourIndices(2,i),:))));
+%         text(237.5,1.1,str,'HorizontalAlignment','center','FontSize',12)
+        xlim([0 200])
+        ylim([45 175])
+        xtickangle(45)
+        str = sprintf('%02.0f:00',HourIndices(1,i));
+        title(str)
+
+            if i ~= 1
+
+                set(gca,'ytick',[])
+
+            end
+
+    end
+    
+    AxHandle=axes(NightFig,'visible','off'); 
+        AxHandle.Title.Visible   ='on';
+        AxHandle.XLabel.Visible  ='on';
+        AxHandle.XLabel.Position = [0.5 0];
+        xlabel(AxHandle,'Counts');
+        AxHandle.YLabel.Visible  ='on';
+        AxHandle.YLabel.Position = [0 0.5];
+        ylabel(AxHandle,'z (m)');
+        title(AxHandle,'Inflection Point Height Distribution by Hour');
+    
+    for i = 1:12
+
+        set(h(i), 'Position', [(1/13*(i))-0.02 .09 1/15 .825])
+
+    end
+
+    % -------------- Hourly Histogram: Day Time --------------
+
+    DayFig = figure;
+
+    HourIndices = [6 7 8 9  10 11 12 13 14 15 16 17;
+                   7 8 9 10 11 12 13 14 15 16 17 18];
+
+    for i = 1:12
+
+        h(i) = subplot(1,12,i);
+
+        [counts,edges,~] = histcounts(nonzeros(HourlyDist(HourIndices(2,i),:)),'binedges',T.Heights);
+        barh(edges(2:end),counts)
+
+        str = sprintf('N = %3.0f',length(nonzeros(HourlyDist(HourIndices(2,i),:))));
+%         text(237.5,1.1,str,'HorizontalAlignment','center','FontSize',12)
+        xlim([0 200])
+        ylim([45 175])
+        xtickangle(45)
+        str = sprintf('%02.0f:00',HourIndices(1,i));
+        title(str)
+
+            if i ~= 1
+
+                set(gca,'ytick',[])
+
+            end
+
+    end
+    
+    AxHandle=axes(DayFig,'visible','off'); 
+        AxHandle.Title.Visible   ='on';
+        AxHandle.XLabel.Visible  ='on';
+        AxHandle.XLabel.Position = [0.5 0];
+        xlabel(AxHandle,'Counts');
+        AxHandle.YLabel.Visible  ='on';
+        AxHandle.YLabel.Position = [0 0.5];
+        ylabel(AxHandle,'z (m)');
+        title(AxHandle,'Inflection Point Height Distribution by Hour');
+    
+    for i = 1:12
+
+        set(h(i), 'Position', [(1/13*(i))-0.02 .09 1/15 .825])
+
+    end
+
+
+end
+
+if P.InflecTOD == 1
+
+    Heights = PLInflec.InflecHeight;
+
+    Heights(isnan(Heights)) = 0;
+
+    [~,~,~,H,~,~] = datevec(D.Time);
+
+    MinuteMean = zeros(1440,1);
+
+    index = 1;
+    i     = 0;
+    j     = 0;
+    
+    while i <= 23
+    
+        while j <= 59
+    
+            Indices = (H == i & MN == j);
+        
+            MinuteMean(index) = mean(nonzeros(Indices .* Heights));
+    
+            j     = j + 1;
+    
+            index = index + 1;
+    
+        end
+    
+        i = i + 1;
+        j = 0;
+    
+    end
+
+    x = duration(minutes(linspace(0,1439,length(MinuteMean))),'Format','hh:mm');
+
+    figure;
+        scatter(x,MinuteMean,'Marker','.','MarkerEdgeColor','k')
+        hold on;
+
+        y = mean(reshape(MinuteMean,60,[]));
+        x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+    
+        plot(x,y,'Color','r','LineWidth',1.5)
+
+        title('Inflection Height Evolution by Time of Day')
+        xlabel('Time of Day')
+        ylabel('z (m)')
+        legend('1 - Minute Average', 'Hourly Average')
+
+end
+
+if P.FitErrorTOD == 1
+
+FullAlphaIndices   = ~isnan(PLFull.alpha);
+InflecAlphaIndices = ~isnan(PLInflec.alpha);
+EkmanIndices       = ~isnan(Ekman.K);
+
+FullIndices = FullAlphaIndices .* InflecAlphaIndices .* EkmanIndices;
+
+FullIndices(FullIndices == 0) = NaN;
+
+y = FullIndices .* PLFull.R;
+x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+
+plot(x,y)
+hold on
+
+y = FullIndices .* PLInflec.R;
+x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+
+plot(x,y)
+
+y = FullIndices .* Ekman.R;
+x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+
+plot(x,y)
+
+ylim([-60 1])
+ylabel('Coefficient of Determination - R^2')
+legend('Power Law - Full Profile','Power Law - Partial Profile','Ekman Fit')
+
+end
+
 
 % if P.HistoPower == 1
 % 
