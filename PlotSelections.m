@@ -344,6 +344,7 @@ if P.AlphaBetaFull == 1
         ylabel('Direction Shear (\circ m^{-1})')
         ylabel(colorbar('eastoutside'),'Normalized Power (-)')
         xlim([AB.xlow AB.xhigh])
+        caxis([0.75 1.1])
         hold on
     
         for i = 1:length(AB.SSrange)                                            % Vertical brid lines
@@ -923,14 +924,14 @@ x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
 
 plot(x,y)
 
-y = FullIndices .* Ekman.R;
-x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
-
-plot(x,y)
-
-ylim([-60 1])
-ylabel('Coefficient of Determination - R^2')
-legend('Power Law - Full Profile','Power Law - Partial Profile','Ekman Fit')
+% y = FullIndices .* Ekman.R;
+% x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+% 
+% plot(x,y)
+% 
+% ylim([-60 1])
+% ylabel('Coefficient of Determination - R^2')
+% legend('Power Law - Full Profile','Power Law - Partial Profile','Ekman Fit')
 
 end
 

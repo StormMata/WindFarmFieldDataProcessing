@@ -2,6 +2,10 @@ function [AlphaBeta,AB] = AlphaBetaRel(D,PLFull,PDFs,WindBins,T,N)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
+fprintf('\n------------------------')
+fprintf('\n----Alpha Beta Calcs----')
+fprintf('\n------------------------\n')
+
 AB.DSrange = N.DS(2):-N.s:N.DS(1);
 AB.SSrange = N.SS(1):N.s:N.SS(2);
 
@@ -38,5 +42,7 @@ AB.s  = N.s;
 
 AB.xlow  = AB.SSrange(1) - AB.s/2;                                                % Set x axis minimum
 AB.xhigh = AB.SSrange(end) - AB.s/2;                                              % Set x axis maximum
+
+fprintf('\n\nComplete.\n\n')
 
 end

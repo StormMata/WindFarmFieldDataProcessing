@@ -184,6 +184,9 @@ P.EkTOD             = 0;    % Ekman parameter evolution
 P.EkTODAVG          = 0;    % Ekman parameter evolution, 10-min AVERAGES
 P.EkTODMED          = 0;    % Ekman parameter evolution, 10-min MEDIANS
 P.InflecTODHisto    = 0;    % Inflection height hourly histograms
+P.InflecTOD         = 0;
+P.FitErrorTOD       = 1;
+
 
 % --- Counts --------------------------------------------------------------
 P.AAPD              = 0;    % Vertical hist of power by wind speed bins, all average
@@ -191,7 +194,7 @@ P.GPD               = 0;    % Vertical hist of power by wind speed bins, AA > Hu
 P.LPD               = 0;    % Vertical hist of power by wind speed bins, AA < Hub
 
 % --- Wind Speed Bins -----------------------------------------------------
-P.HistoPowerAA      = 1;    % Average power with histogram overlaid, all average
+P.HistoPowerAA      = 0;    % Average power with histogram overlaid, all average
 P.HistoPowerAALG    = 0;    % Average power with histogram overlaid, all average, AA < Hub, AA > Hub
 
 % --- Speed Shear Alpha ---------------------------------------------------

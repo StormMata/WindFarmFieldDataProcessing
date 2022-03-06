@@ -2,6 +2,10 @@ function [PDFs] = ShearCharacterization(D,T,PLFull,PLInflec,Ekman)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
+fprintf('\n------------------------')
+fprintf('\n------Shear Calcs-------')
+fprintf('\n------------------------\n')
+
 %% Find Direction Shear PDF
 
 for i = 1:size(D.Veer,2)
@@ -33,8 +37,6 @@ Ekman.K(isnan(Ekman.K))               = 0;
         while j <= 59
     
             Indices = (H == i & MN == j);
-        
-%             TOD(index,:) = Indices .* PDFs.DSrate;
 
             PDFs.DSTOD(index) = mean(nonzeros(Indices .* PDFs.DSrate));
     
@@ -49,12 +51,6 @@ Ekman.K(isnan(Ekman.K))               = 0;
     
     end
 
-%     for i = 1:size(TOD,1)
-%     
-%         PDFs.DSTOD(i) = mean(nonzeros(TOD(i,:)));
-%     
-%     end
-
 %% Find Speed Shear Evolution by TOD
 
     index = 1;
@@ -66,9 +62,6 @@ Ekman.K(isnan(Ekman.K))               = 0;
         while j <= 59
     
             Indices = (H == i & MN == j);
-        
-%             TODFull(index,:)   = Indices .* PLFull.alpha;
-%             TODInflec(index,:) = Indices .* PLInflec.alpha;
 
             PDFs.SSTODFull(index)   = mean(nonzeros(Indices .* PLFull.alpha));
             PDFs.SSTODInflec(index) = mean(nonzeros(Indices .* PLInflec.alpha));
@@ -83,13 +76,6 @@ Ekman.K(isnan(Ekman.K))               = 0;
         j = 0;
     
     end
-
-%     for i = 1:size(TODFull,1)
-%     
-%         PDFs.SSTODFull(i)   = mean(nonzeros(TODFull(i,:)));
-%         PDFs.SSTODInflec(i) = mean(nonzeros(TODInflec(i,:)));
-%     
-%     end
 
 %% Find Ekman Parameter Evolution by TOD
 
@@ -131,11 +117,11 @@ PDFs.TODAvgAxis     = duration(minutes(linspace(0,1439,length(PDFs.DSTODAvg))),'
 %% Find Direction and Speed Shear Evolution by Height
 
 
-Heights = flip(T.Heights)';
-dudz  = gradient(D.Shear(:,160))./gradient(Heights);                % Calculate sign of shear profile
-            index = find(dudz < 0, 1, 'last')
+% Heights = flip(T.Heights)';
+% dudz  = gradient(D.Shear(:,160))./gradient(Heights);                % Calculate sign of shear profile
+%             index = find(dudz < 0, 1, 'last')
 
-
+fprintf('\n\nComplete.\n\n')
 
 
 end
