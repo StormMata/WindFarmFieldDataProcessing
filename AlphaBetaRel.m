@@ -24,13 +24,47 @@ for j = 1:length(AB.DSrange)
 
     for i = 1:length(AB.SSrange)
 
-        AlphaBeta.Power(j,i) = mean(nonzeros((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)) .* D.Power ./ PowerBinAvg));
+        AlphaBeta.Power(j,i)  = mean(nonzeros((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)) .* D.Power ./ PowerBinAvg));
 
-        AlphaBeta.Counts(j,i)   = sum((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)));
+        AlphaBeta.Counts(j,i) = sum((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)));
 
     end
 
 end
+
+%% Time Distributions of Three Bins of Interest
+
+UpLeft = nonzeros((PLFull.alpha >= -0.1 & PLFull.alpha < (-0.1 + 0.1)) .* (PDFs.DSrate >= 0.4 & PDFs.DSrate < (0.4 + 0.1)) .* D.Time);
+
+LowLeft = nonzeros((PLFull.alpha >= -0.1 & PLFull.alpha < (-0.1 + 0.1)) .* (PDFs.DSrate >= -0.1 & PDFs.DSrate < (-0.1 + 0.1)) .* D.Time);
+
+LowRight = nonzeros((PLFull.alpha >= 0.7 & PLFull.alpha < (0.7 + 0.1)) .* (PDFs.DSrate >= -0.1 & PDFs.DSrate < (-0.1 + 0.1)) .* D.Time);
+
+[~,~,~,AlphaBeta.UpLeft,~,~] = datevec(UpLeft);
+
+[~,~,~,AlphaBeta.LowLeft,~,~] = datevec(LowLeft);
+
+[~,~,~,AlphaBeta.LowRight,~,~] = datevec(LowRight);
+
+figure;
+    histogram(AlphaBeta.UpLeft)
+    xlabel('Hour of the Day')
+    ylabel('Counts')
+    title('Low Speed Shear - High Veer')
+
+figure;
+    histogram(AlphaBeta.LowLeft)
+    xlabel('Hour of the Day')
+    ylabel('Counts')
+    title('Low Speed Shear - Low Backing/Low Veer')
+
+figure;
+    histogram(AlphaBeta.LowRight)
+    xlabel('Hour of the Day')
+    ylabel('Counts')
+    title('High Speed Shear - Low Backing/Low Veer')
+
+%% Processing
 
 AlphaBeta.Power(AlphaBeta.Counts < 15) = NaN;
 

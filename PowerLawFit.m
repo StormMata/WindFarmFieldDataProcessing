@@ -4,8 +4,8 @@ function [PowLaw] = PowerLawFit(Shear,T,FitProfile)
 %   [A] = PowerLawFit(B,C,D)
 %           A = Structure containing the optimum fit variables
 %               A.alpha   = alpha exponent
-%               A.rsquare = R^2 value of fit
-%               A.rmse    = Root Mean Square Error of fit
+%               A.R       = R^2 value of fit
+%               A.RMSE    = Root Mean Square Error of fit
 %           B = Vector containing shear profile
 %           C = Vector containing heights of wind speed measurements
 %           D = String indicating shear profile to fit curve to
@@ -38,6 +38,8 @@ warning('off')                                                              % Tu
 
         Heights = flip(T.Heights)';
 
+        PowLaw.InflecHeight(i)  = NaN;                                      % Store Inflection height       [m]
+
         if strcmp(FitProfile,'Inflec') == 1
 
             dudz  = gradient(Shear(:,i))./gradient(Heights);                % Calculate sign of shear profile
@@ -45,30 +47,34 @@ warning('off')                                                              % Tu
             Shear(1:index,i) = NaN;                                         % Set all measurements above that point to NaN
             Heights(1:index) = NaN;                                         % Do same for heights
 
+            if index ~= 1 & index ~= 12
+    
+                PowLaw.InflecHeight(i) = Heights(index+1);                  % Store Inflection height       [m]
+    
+            end
+
         end
     
-        [xdata, ydata] = prepareCurveData(Heights,Shear(:,i));              % Recommended for curve-fitting toolbox
-    
-        u = num2str(Shear(end,i));                                          % Reference wind speed          [m/s]
-        z = num2str(Heights(end));                                          % Reference height              [m]
-        
-        model = strcat(u,'*(x/',z,')^a');                                   % Define power law model
-        
-        ft = fittype(model, 'independent', 'x', 'dependent', 'y');          % Classify variables
-    
-        opts = fitoptions('Method', 'NonlinearLeastSquares');               % Regression method
-        opts.Display    = 'Off';
-        opts.StartPoint = 1/7;                                              % Required for curve-fitting toolbox
-    
-        PowLaw.InflecHeight(i)  = NaN;                                      % Store Inflection height       [m]
+        [xdata, ydata] = prepareCurveData(Heights,Shear(:,i));              % Prepare data
+
+        options = optimset('MaxIter',2500,'MaxFunEvals',2500, ...           % Set fminsearch options
+                           'display','off');
 
         try
-        
-            [fitresult, gof] = fit(xdata, ydata, ft, opts);                 % Perform fit
-            
-            PowLaw.alpha(i) = fitresult.a;                                  % Store alpha for each profile
-            PowLaw.R(i)     = gof.rsquare;                                  % Store R^2 value for each fit
-            PowLaw.RMSE(i)  = gof.rmse;                                     % Store Root Mean Square Error for each fit
+
+            fun = @(x)sum((ydata - x(1).*(xdata/43).^x(2)).^2);             % Define objective function (SSE)
+
+            x0 = [ydata(1),0];                                              % Initial guesses for Uref and a
+
+            fits = fminsearch(fun,x0,options);                              % Optimization routine
+
+            yfit = fits(1).*(xdata/43).^fits(2);                            % Calculate fit values          [m/s]
+
+            PowLaw.Uref(i)  = fits(1);                                      % Store Uref for each profile   [m/s]
+            PowLaw.alpha(i) = fits(2);                                      % Store alpha for each profile
+            PowLaw.R(i)     = 1-sum((ydata - yfit).^2)/sum((ydata - ...     % Store R^2 value for each fit
+                              mean(ydata)).^2);                                  
+            PowLaw.RMSE(i)  = sqrt(mean((ydata - yfit).^2));                % Store Root Mean Square Error for each fit
     
         catch
         
@@ -76,12 +82,6 @@ warning('off')                                                              % Tu
             PowLaw.R(i)             = NaN;                                  % If curve fit fails, store NaN for R^2
             PowLaw.RMSE(i)          = NaN;                                  % If curve fit fails, store NaN for Root Mean Square Error
         
-        end
-
-        if ~isnan(PowLaw.alpha(i)) & index ~= 1 & index ~= 12
-
-            PowLaw.InflecHeight(i) = Heights(index+1);                      % Store Inflection height       [m]
-
         end
     
         if mod(i,10)==0

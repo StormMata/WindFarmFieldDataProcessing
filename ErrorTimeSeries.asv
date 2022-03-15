@@ -33,6 +33,10 @@ fprintf('\n------------------------\n')
     
     end
 
+
+
+% Ep.TODmean = mean(reshape(Ep.abs(1:21630),10,[]));
+
 % ----------------- Time of Day 1 - Min Ep Average -----------------
     
     index = 1;
@@ -46,8 +50,7 @@ fprintf('\n------------------------\n')
             Indices = (H == i & MN == j);
         
 %             Ep.TOD(index,:) = Indices .* Ep.abs;
-            Ep.TODMagMean(index)  = mean(nonzeros(Indices .* Ep.abs));
-            Ep.TODDiffMean(index) = mean(nonzeros(Indices .* Ep.diff));
+            Ep.TODmean(index) = mean(nonzeros(Indices .* Ep.abs));
     
             j     = j + 1;
     
@@ -60,7 +63,7 @@ fprintf('\n------------------------\n')
     
     end
     
-Ep.TODAxis = duration(minutes(linspace(0,1439,length(Ep.TODMagMean))),'Format','hh:mm');
+Ep.TODAxis = duration(minutes(linspace(0,1439,length(Ep.TODmean))),'Format','hh:mm');
 
 fprintf('\n\nComplete.\n\n')
 

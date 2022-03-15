@@ -113,7 +113,7 @@ clear C
 
 %% Section 8 - Fit Power Law to Shear
 
-    [Ekmantest] = EkmanFit(D.Shear,T);                                              % Fit power law to shear profiles
+    [Ekman] = EkmanFit(D.Shear,T);                                              % Fit power law to shear profiles
 
 %% Section 9 - Conditional Averages and Stats
 
@@ -179,8 +179,8 @@ P.TI                = 0;    % Turbulence intensity
 
 % --- Time of Day ---------------------------------------------------------
 P.EpTODHisto        = 0;    % Day and night hourly power error histograms
-P.EpTODMag          = 1;    % Power Error
-P.EpTODDiff         = 1;    % Power Error
+P.EpTOD1            = 1;    % Power Error
+P.EpTOD2            = 1;    % Power Error
 P.EpTODAvg          = 0;
 P.SSTOD             = 0;    % Speed and Direction shear evolution
 P.SSTODAVG          = 0;    % Speed and Direction shear evolution, 10-min averages

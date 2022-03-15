@@ -1,12 +1,13 @@
-function [AvgPower,BinIndex] = AlphaBetaRel(D,PLFull,PDFs,WindBins,T,AB)
+function [AlphaBeta,AB] = AlphaBetaRel(D,PLFull,PDFs,WindBins,T,N)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
-AB.DSrange = AB.DS(2):-AB.s:AB.DS(1);
-AB.SSrange = AB.SS(1):AB.s:AB.SS(2);
+fprintf('\n------------------------')
+fprintf('\n----Alpha Beta Calcs----')
+fprintf('\n------------------------\n')
 
-AvgPower  = zeros(length(AB.DSrange),length(AB.SSrange));
-Counts    = AvgPower;
+AB.DSrange = N.DS(2):-N.s:N.DS(1);
+AB.SSrange = N.SS(1):N.s:N.SS(2);
 
 [~,~,AlphaBeta.BinIndex] = histcounts(D.Shear(T.HubRow,:),WindBins);
 AlphaBeta.BinIndex = AlphaBeta.BinIndex+1;
@@ -23,86 +24,59 @@ for j = 1:length(AB.DSrange)
 
     for i = 1:length(AB.SSrange)
 
-        AlphaBeta.Power(j,i) = mean(nonzeros((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + AB.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + AB.s)) .* D.Power ./ PowerBinAvg));
+        AlphaBeta.Power(j,i)  = mean(nonzeros((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)) .* D.Power ./ PowerBinAvg));
 
-        AlphaBeta.Counts(j,i)   = sum((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + AB.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + AB.s)));
+        AlphaBeta.Counts(j,i) = sum((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)));
 
     end
 
 end
 
-AvgPower(Counts < 15) = NaN;
+%% Time Distributions of Three Bins of Interest
+
+UpLeft = nonzeros((PLFull.alpha >= -0.1 & PLFull.alpha < (-0.1 + 0.1)) .* (PDFs.DSrate >= 0.4 & PDFs.DSrate < (0.4 + 0.1)) .* D.Time);
+
+LowLeft = nonzeros((PLFull.alpha >= -0.1 & PLFull.alpha < (-0.1 + 0.1)) .* (PDFs.DSrate >= -0.1 & PDFs.DSrate < (-0.1 + 0.1)) .* D.Time);
+
+LowRight = nonzeros((PLFull.alpha >= 0.7 & PLFull.alpha < (0.7 + 0.1)) .* (PDFs.DSrate >= -0.1 & PDFs.DSrate < (-0.1 + 0.1)) .* D.Time);
+
+[~,~,~,AlphaBeta.UpLeft,~,~] = datevec(UpLeft);
+
+[~,~,~,AlphaBeta.LowLeft,~,~] = datevec(LowLeft);
+
+[~,~,~,AlphaBeta.LowRight,~,~] = datevec(LowRight);
+
+figure;
+    histogram(AlphaBeta.UpLeft)
+    xlabel('Hour of the Day')
+    ylabel('Counts')
+    title('Low Speed Shear - High ')
+
+figure;
+    histogram(AlphaBeta.LowLeft)
+    xlabel('Hour of the Day')
+    ylabel('Counts')
+    title('Lower Left Corner')
+
+figure;
+    histogram(AlphaBeta.LowRight)
+    xlabel('Hour of the Day')
+    ylabel('Counts')
+    title('Lower Right Corner')
+
+%% Processing
+
+AlphaBeta.Power(AlphaBeta.Counts < 15) = NaN;
+
+AlphaBeta.PowerLH = AlphaBeta.Power;
+
+AB.DS = N.DS;
+AB.SS = N.SS;
+AB.s  = N.s;
 
 AB.xlow  = AB.SSrange(1) - AB.s/2;                                                % Set x axis minimum
 AB.xhigh = AB.SSrange(end) - AB.s/2;                                              % Set x axis maximum
 
-%% Plots - Full Colormap
-
-figure;
-    imagesc(AB.SSrange,AB.DSrange,AvgPower);
-    axis xy                                                                 % Flip image
-    colormap([1 1 1; gray(256)])                                            % Bi-tone colomap
-    colorbar
-
-    xlabel('Speed Shear (\alpha)')
-    ylabel('Direction Shear (\circ m^{-1})')
-    ylabel(colorbar('eastoutside'),'Normalized Power (-)')
-    xlim([AB.xlow AB.xhigh])
-    hold on
-
-    for i = 1:length(AB.SSrange)                                               % Vertical brid lines
-        xline(AB.SSrange(i)-AB.s/2)
-    end
-
-    for i = 1:length(AB.DSrange)                                               % Horizontal brid lines
-        yline(AB.DSrange(i)-AB.s/2)
-    end
-
-    x = [AB.SSrange 0.8];                                                      % Add threshold line
-    y = 2/3*x - 0.1;
-    plot(x,y,'color','r','LineWidth',2)
-
-    hold off
-
-%% Plots - Simple Above/Below Case
-
-low  = min(AvgPower,[],'all');                                              % Find minimum
-high = max(AvgPower,[],'all');                                              % Find maximum
-
-AvgPower(AvgPower<1 & ~isnan(AvgPower)) = low;                              % Convert all values >1 to maximum
-AvgPower(AvgPower>=1) = high;                                               % Convert all values <1 to minimum
-
-if abs(high-1) > abs(1-low)                                                 % Calibrate colormap values
-    AvgPower(end,end) = 1-abs(high-1);
-else
-    AvgPower(end,end) = 1+abs(low-1);
-end
-
-figure;
-    h = imagesc(AB.SSrange,AB.DSrange,AvgPower);
-    axis xy                                                                 % Flip image
-    colormap([0.66 0.66 0.66; .33 .33 .33])                                 % Bi-tone colomap
-    colorbar
-    set(h,'alphadata',~isnan(AvgPower))                                     % Set NaNs to white
-
-    xlabel('Speed Shear (\alpha)')
-    ylabel('Direction Shear (\circ m^{-1})')
-    ylabel(colorbar('eastoutside'),'Normalized Power (-)')
-    xlim([AB.xlow AB.xhigh])
-    hold on
-
-    for i = 1:length(AB.SSrange)                                               % Vertical brid lines
-        xline(AB.SSrange(i)-AB.s/2)
-    end
-
-    for i = 1:length(AB.DSrange)                                               % Horizontal brid lines
-        yline(AB.DSrange(i)-AB.s/2)
-    end
-
-    x = [AB.SSrange 0.8];                                                      % Add threshold line
-    y = 2/3*x - 0.1;
-    plot(x,y,'color','r','LineWidth',2)
-
-    hold off
+fprintf('\n\nComplete.\n\n')
 
 end

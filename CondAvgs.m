@@ -2,6 +2,10 @@ function [WindBins,Mean,Num,Dist,STD,Sig] = CondAvgs(T,D,AvgComp)
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 
+fprintf('\n------------------------')
+fprintf('\n--Conditional Averages--')
+fprintf('\n------------------------\n')
+
 WindBins   = linspace(0,20,T.numbins);                                          % x-axis wind speed bins
 BinWidth   = (WindBins(2) - WindBins(1))/2;                                     % Find width of bins
 
@@ -39,3 +43,7 @@ end
 %         TempIndicesA = (alpha > AlphaBins(i) - AlphaBinWidth & alpha <= AlphaBins(i) + AlphaBinWidth);
 %         Mean.Alpha(i)  = mean(nonzeros(TempIndicesA .* D.Power));
 % end
+
+fprintf('\n\nComplete.\n\n')
+
+end

@@ -626,7 +626,7 @@ if P.EpTODMag == 1
     
         plot(x,y,'Color','r','LineWidth',1.5)
 
-        title('mean $\left( \frac{P(t) - \overline{P}}{\overline{P}}\right)$','Interpreter','latex')
+        title('mean $\left( \frac{|P(t) - \overline{P}|}{\overline{P}}\right)$','Interpreter','latex')
         xlabel('Time of Day')
         ylabel('\epsilon_P (-)')
         legend('1 - Minute Average', '1 - Hour Average')
@@ -644,9 +644,7 @@ if P.EpTODDiff == 1
     
         plot(x,y,'Color','r','LineWidth',1.5)
 
-        yline(0,'LineWidth',1.5)
-
-        title('$\frac{|P(t) - \overline{P}|}{\overline{P}}$','Interpreter','latex')
+        title('mean $\left( \frac{|P(t) - \overline{P}|}{\overline{P}}\right)$','Interpreter','latex')
         xlabel('Time of Day')
         ylabel('\epsilon_P (-)')
         legend('1 - Minute Average', '1 - Hour Average')
@@ -925,7 +923,6 @@ end
 
 if P.FitErrorTOD == 1
 
-    figure;
 FullAlphaIndices   = ~isnan(PLFull.alpha);
 InflecAlphaIndices = ~isnan(PLInflec.alpha);
 EkmanIndices       = ~isnan(Ekman.K);
@@ -945,43 +942,17 @@ x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
 
 plot(x,y)
 
-y = FullIndices .* Ekman.R;
-x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
-
-plot(x,y)
-
+% y = FullIndices .* Ekman.R;
+% x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+% 
+% plot(x,y)
+% 
 % ylim([-60 1])
-ylabel('Coefficient of Determination - R^2')
-legend('Power Law - Full Profile','Power Law - Partial Profile','Ekman Fit')
+% ylabel('Coefficient of Determination - R^2')
+% legend('Power Law - Full Profile','Power Law - Partial Profile','Ekman Fit')
 
 end
 
-figure;
-    plot(datetime(D.Time,'ConvertFrom','datenum'),Ekman.R)
-
-    figure;                                                                 % Inflection profile fit
-        [PDFs.SSProb2,PDFs.SSEdges2] = histcounts(Ekman.R,...
-            'Normalization','probability','BinLimits',[-0.5 1.5]);
-        plot(PDFs.SSEdges2(1:end-1),PDFs.SSProb2,'Color','k','LineWidth',1.5);
-
-        hold on
-
-        [PDFs.SSProb2,PDFs.SSEdges2] = histcounts(PLFull.R,...
-            'Normalization','probability','BinLimits',[-0.5 1.5]);
-        plot(PDFs.SSEdges2(1:end-1),PDFs.SSProb2,'Color','r','LineWidth',1.5);
-
-
-        [PDFs.SSProb2,PDFs.SSEdges2] = histcounts(PLInflec.R,...
-            'Normalization','probability','BinLimits',[-0.5 1.5]);
-        plot(PDFs.SSEdges2(1:end-1),PDFs.SSProb2,'Color','b','LineWidth',1.5);
-
-        legend('Ekman','Full','Inflec')
-
-
-        title('Speed Shear Probability Distribution - Inflection Fit')
-        xlabel('Speed Shear (\alpha)')
-        ylabel('Probability of Occurrence')
-        xlim([-0.35 1.4])
 
 % if P.HistoPower == 1
 % 
