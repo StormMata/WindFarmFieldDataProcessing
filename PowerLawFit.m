@@ -74,13 +74,13 @@ warning('off')                                                              % Tu
             PowLaw.alpha(i) = fits(2);                                      % Store alpha for each profile
             PowLaw.R(i)     = 1-sum((ydata - yfit).^2)/sum((ydata - ...     % Store R^2 value for each fit
                               mean(ydata)).^2);                                  
-            PowLaw.RMSE(i)  = sqrt(mean((ydata - yfit).^2));                % Store Root Mean Square Error for each fit
+            PowLaw.NRMSE(i) = sqrt(mean((ydata - yfit).^2))/mean(Shear(:,i));% Store normalized Root Mean Square Error for each fit
     
         catch
         
-            PowLaw.alpha(i)         = NaN;                                  % If curve fit fails, store NaN for alpha
-            PowLaw.R(i)             = NaN;                                  % If curve fit fails, store NaN for R^2
-            PowLaw.RMSE(i)          = NaN;                                  % If curve fit fails, store NaN for Root Mean Square Error
+            PowLaw.alpha(i) = NaN;                                          % If curve fit fails, store NaN for alpha
+            PowLaw.R(i)     = NaN;                                          % If curve fit fails, store NaN for R^2
+            PowLaw.NRMSE(i) = NaN;                                          % If curve fit fails, store NaN for Root Mean Square Error
         
         end
     

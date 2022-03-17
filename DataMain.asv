@@ -29,7 +29,7 @@
 % Wind
 
 
-clearvars -except data Ekman PLFull PLInflec
+clearvars -except data WndFamMap % Ekman PLFull PLInflec
 %close all
 clc
 
@@ -135,7 +135,11 @@ clear C
 
     [AlphaBeta,AB] = AlphaBetaRel(D,PLFull,PDFs,WindBins,T,N);                  % Calculate and plot the relationship between shear and power
 
-%% 
+%% Section 13 - Wind Farm Map
+
+    [WndFamMap] = WndFamMap();
+
+%%
 
 angavg  = mean(reshape(data.BHR62.Pitch,10,[]));
 wndbin  = data.Lidar.H104m.WndSpd(5:10:end);
@@ -169,6 +173,9 @@ figure
 
 %% Plot Selection
 
+% --- Map -----------------------------------------------------------------
+P.WndFmMap          = 1;    % Wind farm contour map
+
 % --- Polar Plots ---------------------------------------------------------
 P.WindRoseFull      = 0;    % Full LiDAR wind data
 P.WindRoseAnalysis  = 0;    % Only filtered LiDAR data
@@ -179,8 +186,8 @@ P.TI                = 0;    % Turbulence intensity
 
 % --- Time of Day ---------------------------------------------------------
 P.EpTODHisto        = 0;    % Day and night hourly power error histograms
-P.EpTOD1            = 1;    % Power Error
-P.EpTOD2            = 1;    % Power Error
+P.EpTODMag          = 0;    % Power Error
+P.EpTODDiff         = 0;    % Power Error
 P.EpTODAvg          = 0;
 P.SSTOD             = 0;    % Speed and Direction shear evolution
 P.SSTODAVG          = 0;    % Speed and Direction shear evolution, 10-min averages
@@ -216,7 +223,7 @@ P.EkmanProb         = 0;    % Probability of occurence
 
 
 
-PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,PDFs,PLFull,PLInflec,Ekman,Ep)
+PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,PDFs,PLFull,PLInflec,Ekman,Ep,WndFamMap)
 
 
 

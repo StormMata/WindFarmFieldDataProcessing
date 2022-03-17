@@ -29,7 +29,7 @@
 % Wind
 
 
-clearvars -except data Ekman PLFull PLInflec
+clearvars -except data WndFamMap % Ekman PLFull PLInflec
 %close all
 clc
 
@@ -113,7 +113,7 @@ clear C
 
 %% Section 8 - Fit Power Law to Shear
 
-    [Ekmantest] = EkmanFit(D.Shear,T);                                              % Fit power law to shear profiles
+    [Ekman] = EkmanFit(D.Shear,T);                                              % Fit power law to shear profiles
 
 %% Section 9 - Conditional Averages and Stats
 
@@ -135,7 +135,19 @@ clear C
 
     [AlphaBeta,AB] = AlphaBetaRel(D,PLFull,PDFs,WindBins,T,N);                  % Calculate and plot the relationship between shear and power
 
-%% 
+%% Section 13 - Km/Beta Relationship
+
+    N.Km = [0 1];                                                          % Speed shear range [low high]
+    N.DS = [-0.1 0.6];                                                          % Direction shear range [low high]
+    N.s  = 0.1;                                                                 % Increment size
+
+    [KmBeta,KB] = KmBetaRel(D,PLFull,PDFs,WindBins,T,N);                        % Calculate and plot the relationship between shear and power
+
+%% Section 13 - Wind Farm Map
+
+    [WndFamMap] = WndFamMap();
+
+%%
 
 angavg  = mean(reshape(data.BHR62.Pitch,10,[]));
 wndbin  = data.Lidar.H104m.WndSpd(5:10:end);
@@ -169,6 +181,9 @@ figure
 
 %% Plot Selection
 
+% --- Map -----------------------------------------------------------------
+P.WndFmMap          = 0;    % Wind farm contour map
+
 % --- Polar Plots ---------------------------------------------------------
 P.WindRoseFull      = 0;    % Full LiDAR wind data
 P.WindRoseAnalysis  = 0;    % Only filtered LiDAR data
@@ -179,8 +194,8 @@ P.TI                = 0;    % Turbulence intensity
 
 % --- Time of Day ---------------------------------------------------------
 P.EpTODHisto        = 0;    % Day and night hourly power error histograms
-P.EpTODMag          = 1;    % Power Error
-P.EpTODDiff         = 1;    % Power Error
+P.EpTODMag          = 0;    % Power Error
+P.EpTODDiff         = 0;    % Power Error
 P.EpTODAvg          = 0;
 P.SSTOD             = 0;    % Speed and Direction shear evolution
 P.SSTODAVG          = 0;    % Speed and Direction shear evolution, 10-min averages
@@ -201,11 +216,14 @@ P.HistoPowerAA      = 0;    % Average power with histogram overlaid, all average
 P.HistoPowerAALG    = 0;    % Average power with histogram overlaid, all average, AA < Hub, AA > Hub
 
 % --- Speed Shear Alpha ---------------------------------------------------
-P.AlphaBetaFull     = 0;    % Full color direction shear heatmap
+P.AlphaBetaFull     = 1;    % Full color direction shear heatmap
 P.AlphaBetaMono     = 0;    % Monochromatic color direction shear heatmap
 P.AlphaBetaLH       = 0;    % Two-color direction shear heatmap
 P.SSFull            = 0;    % Probability of occurence, Full profile fit
 P.SSInflec          = 0;    % Probability of occurence, Partial profile fit
+
+% --- Ekman Parameter -----------------------------------------------------
+P.KmBetaFull        = 1;
 
 % --- Direction Shear -----------------------------------------------------
 P.DSprob            = 0;    % Probability of occurence
@@ -216,7 +234,7 @@ P.EkmanProb         = 0;    % Probability of occurence
 
 
 
-PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,PDFs,PLFull,PLInflec,Ekman,Ep)
+PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,KB,KmBeta,PDFs,PLFull,PLInflec,Ekman,Ep,WndFamMap)
 
 
 
