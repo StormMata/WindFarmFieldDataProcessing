@@ -9,8 +9,8 @@ fprintf('\n--Wind Farm Elevations--')
 fprintf('\n------------------------\n')
 fprintf('\nComplete:             0')
 
-lat  = linspace(23.0420,22.9115,400);
-long = linspace(69.8665,70.0040,400);
+lat  = linspace(23.0420,22.9115,350);
+long = linspace(69.8665,70.0040,350);
 
 Elev = zeros(length(lat),length(long));
 

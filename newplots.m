@@ -54,7 +54,7 @@ legend('Shear Profile',str1,str2,str3,'','')
     xlabel('Coefficient of Determination')
     ylabel('Probability of Occurrence')
 
-% Ekman
+% Ekman - R2
 
     histogram(Ekman.NRMSE,'displaystyle','stairs','Normalization','probability',LineWidth=1.5)
 
@@ -87,6 +87,31 @@ legend('Shear Profile',str1,str2,str3,'','')
     xs = [0.9 0.95 0.95 1 1 0.9];
     ys = [y.Values(20) y.Values(20) y.Values(21) y.Values(21) 0 0];
     fill(xs,ys,[0.6350 0.0780 0.1840])
+
+% Ekman - RMSE
+
+    histogram(Ekman.NRMSE,'displaystyle','stairs','Normalization','probability',LineWidth=1.5)
+    legend('Ekman Optimization')
+    xlabel('NRMSE')
+    ylabel('Probability of Occurrence')
+    xlim([-55 1])
+    
+%     EkmanR = Ekman.R;
+    [~,~,~,EkmanTime,~,~] = datevec(D.Time);
+    
+    filter = (Ekman.NRMSE>=0.0394);
+    
+    filter = double(filter);
+    
+    filter(filter == 0) = NaN;
+    
+    EkmanTime = EkmanTime.*filter;
+    
+    histogram(EkmanTime,'binedges',[0:1:24],'displaystyle','stairs','Normalization','probability',LineWidth=1.5)
+    title('Hours of the Day for Highest Ekman Fit Normalized RMSE Values')
+    xlabel('Hour of the Day')
+    ylabel('Probability of Occurrence')
+    xlim([0 24])
 
 % Nightime
     

@@ -1,131 +1,441 @@
 function [] = PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,KB,KmBeta,PDFs,PLFull,PLInflec,Ekman,Ep,WndFamMap)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%PlotSelections produces the selected plots specified in DataMain
+%   Plot Selections takes the selections and data from DataMain and
+%   produces the specifed plots.
+
+if P.TurbineSchema == 1
+
+    % Load chord length
+    
+    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Thesis/BEMT/BEMT');
+    
+    [~,~,~,~,c] = LoadGeometry('Airfoil_17.txt');
+    
+    % Plot
+    
+    figure;
+    hold on
+    
+    % -------------------- Front View --------------------
+    
+        % Blade 1
+        
+            angle = 90;
+            
+            Ys = c';
+            Xs = linspace(0,T.R,length(Ys));
+            
+            a_rad=((angle*pi)./180);
+            [THETA,R] = cart2pol(Xs,Ys);        %Convert to polar coordinates
+            THETA = THETA+a_rad;                %Add a_rad to theta
+            [xr,yr] = pol2cart(THETA,R);        %Convert back to Cartesian coordinates
+            
+            plot(xr+T.HubR/2, T.Hub+yr+2,'k');
+            plot([T.HubR/2 T.HubR/2+xr(end)],[T.Hub+2 T.Hub+yr(end)+2],'k')
+        
+        % Blade 2
+        
+            angle = 210;
+            
+            Ys = c';
+            Xs = linspace(0,T.R,length(Ys));
+            
+            a_rad=((angle*pi)./180);
+            [THETA,R] = cart2pol(Xs,Ys);        %Convert to polar coordinates
+            THETA = THETA+a_rad;                %Add a_rad to theta
+            [xr,yr] = pol2cart(THETA,R);        %Convert back to Cartesian coordinates
+            
+            plot(xr-T.HubR/2, T.Hub+yr,'k');
+            plot([-T.HubR/2 -T.HubR/2+xr(end)],[T.Hub T.Hub+yr(end)],'k')
+        
+        % Blade 3
+        
+            angle = 330;
+            
+            Ys = c';
+            Xs = linspace(0,T.R,length(Ys));
+            
+            a_rad=((angle*pi)./180);
+            [THETA,R] = cart2pol(Xs,Ys);        %Convert to polar coordinates
+            THETA = THETA+a_rad;                %Add a_rad to theta
+            [xr,yr] = pol2cart(THETA,R);        %Convert back to Cartesian coordinates
+            
+            plot(xr, (T.Hub-T.HubR/2)+yr,'k');
+            plot([0 xr(end)],[(T.Hub-T.HubR/2) (T.Hub-T.HubR/2)+yr(end)],'k')
+        
+        % Tower
+        
+            x = [-3.5 -2.5 2.5 3.5];
+            y = [0 T.Hub-T.HubR/2 T.Hub-T.HubR/2 0];
+            fill(x,y,'w')
+        
+        % Nacelle
+        
+            x = [-2.5 -2.5 2.5 2.5];
+            y = [T.Hub-T.HubR/2 T.Hub+T.HubR/2 T.Hub+T.HubR/2 T.Hub-T.HubR/2];
+            fill(x,y,'w')
+        
+        % Hub
+        
+            th = 0:pi/50:2*pi;
+            xunit = T.HubR * cos(th) + 0;
+            yunit = T.HubR * sin(th) + T.Hub;
+            plot(xunit, yunit,'k');
+            
+            fill(xunit,yunit,'w')
+        
+        % Radius circle
+        
+            xunit = (T.R+2) * cos(th) + 0;
+            yunit = (T.R+2) * sin(th) + T.Hub;
+            plot(xunit, yunit,'--k');
+        
+            ha = annotation('doublearrow');                                     % store the arrow information in ha
+            ha.Parent = gca;                                                    % associate the arrow the the current axes
+            ha.X = [-T.R-2 T.R+2];                                              % the location in data units
+            ha.Y = [T.Hub T.Hub]; 
+            
+            text(-T.R*2/3,T.Hub+3,'D = 114 m')
+    
+    % -------------------- Side View --------------------
+    
+        % Tower
+        
+            x = [-100-3.5 -100-2.5 -100+2.5 -100+3.5];
+            y = [0 T.Hub-T.HubR/2 T.Hub-T.HubR/2 0];
+            fill(x,y,'w')
+        
+        % Hub
+        
+            x = [-100-8.5 -100-8.5 -100+4.5 -100+4.5];
+            y = [T.Hub-T.HubR/2 T.Hub+T.HubR/2 T.Hub+T.HubR/2 T.Hub-T.HubR/2];
+            fill(x,y,'w')
+        
+            x = [-100+4.5 -100+4.5 -100+7.5 -100+7.5];
+            y = [T.Hub-T.HubR T.Hub+T.HubR T.Hub+T.HubR T.Hub-T.HubR];
+            fill(x,y,'w')
+        
+        % Hub cap
+        
+            th = linspace( pi/2, -pi/2, 100);
+            xunit = T.HubR * cos(th) + -100+7.5;
+            yunit = T.HubR * sin(th) + T.Hub;
+            plot(xunit, yunit,'k');
+            
+            fill(xunit,yunit,'w')
+        
+        % Blade 1
+        
+            x = [-100+4.5 -100+5 -100+5 -100+7.5];
+            y = [T.Hub-T.HubR yr(end)+T.Hub-1 yr(end)+T.Hub T.Hub-T.HubR];
+            fill(x,y,'w')
+        
+        % Blade 2
+        
+            x = [-100+4.5 -100+7 -100+7 -100+7.5];
+            y = [T.Hub-T.HubR yr(end)+T.Hub-4 yr(end)+T.Hub T.Hub-T.HubR];
+            fill(x,y,'w')
+        
+        % Blade 3
+        
+            x = [-100+4.5 -100+5 -100+6 -100+7.5];
+            y = [T.Hub+T.HubR T.Hub+T.R-20 T.Hub+T.R+2 T.Hub+T.HubR];
+            fill(x,y,'w')
+    
+    axis equal
+    ylabel('z (m)')
+    ylim([0 170])
+    set(gca,'XTickLabel',[]);
+    set(gca,'XTick',[]);
+
+end
+
+if P.WindSchema == 1
+
+    % Load chord length
+    
+    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Thesis/BEMT/BEMT');
+    
+    [~,~,~,~,c] = LoadGeometry('Airfoil_17.txt');
+    
+    % Plot
+    
+    figure;
+    hold on
+    
+    % -------------------- Side View --------------------
+
+        % Blade 3
+        
+            angle = 330;
+            
+            Ys = c';
+            Xs = linspace(0,T.R,length(Ys));
+            
+            a_rad=((angle*pi)./180);
+            [THETA,R] = cart2pol(Xs,Ys);                                        %Convert to polar coordinates
+            THETA = THETA+a_rad;                                                %Add a_rad to theta
+            [~,yr] = pol2cart(THETA,R);                                         %Convert back to Cartesian coordinates
+            
+        % Tower
+        
+            x = [-100-3.5 -100-2.5 -100+2.5 -100+3.5];
+            y = [0 T.Hub-T.HubR/2 T.Hub-T.HubR/2 0];
+            fill(x,y,'w')
+        
+        % Hub
+        
+            x = [-100+8.5 -100+8.5 -100-4.5 -100-4.5];
+            y = [T.Hub-T.HubR/2 T.Hub+T.HubR/2 T.Hub+T.HubR/2 T.Hub-T.HubR/2];
+            fill(x,y,'w')
+        
+            x = [-100-4.5 -100-4.5 -100-7.5 -100-7.5];
+            y = [T.Hub-T.HubR T.Hub+T.HubR T.Hub+T.HubR T.Hub-T.HubR];
+            fill(x,y,'w')
+        
+        % Hub cap
+        
+            th = linspace( 3*pi/2, pi/2, 100);
+            xunit = T.HubR * cos(th) + -100-7.5;
+            yunit = T.HubR * sin(th) + T.Hub;
+            plot(xunit, yunit,'k');
+            
+            fill(xunit,yunit,'w')
+        
+        % Blade 1
+        
+            x = [-100-4.5 -100-5 -100-5 -100-7.5];
+            y = [T.Hub-T.HubR yr(end)+T.Hub-1 yr(end)+T.Hub T.Hub-T.HubR];
+            fill(x,y,'w')
+        
+        % Blade 2
+        
+            x = [-100-4.5 -100-7 -100-7 -100-7.5];
+            y = [T.Hub-T.HubR yr(end)+T.Hub-4 yr(end)+T.Hub T.Hub-T.HubR];
+            fill(x,y,'w')
+        
+        % Blade 3
+        
+            x = [-100-4.5 -100-5 -100-6 -100-7.5];
+            y = [T.Hub+T.HubR T.Hub+T.R-20 T.Hub+T.R+2 T.Hub+T.HubR];
+            fill(x,y,'w')
+    
+    % -------------------- Wind Profiles --------------------
+    
+        Z = 0:0.5:300;
+
+        k = 0.03;                                                               % Eddy diffusivity
+        g = 4;                                                                  % Geostrophic wind
+
+        EkmanProfile = sqrt((g .* (1 - exp(-sqrt((2*7.292e-5*sind(23))/ ...
+            (2*k)).*Z) .* cos(sqrt((2*7.292e-5*sind(23))/(2*k)).*Z))).^2 ...
+            +(g .* exp(-sqrt((2*7.292e-5*sind(23))/(2*k)).*Z) .* ...
+            sin(sqrt((2*7.292e-5*sind(23))/(2*k)).*Z)).^2);
+
+        PowerLaw = 300*(0.1*(Z./43).^(0.2))-190;
+
+        EkmanProfile = (EkmanProfile * 10)-190;
+        
+        plot(PowerLaw,Z,'LineWidth',2)
+        plot(EkmanProfile,Z,'LineWidth',2)
+        xline(-165,'LineStyle','--')
+
+        axis equal
+        legend('','','','','','','','','Power Law','Ekman Layer','Location','northwest')
+        ylabel('z (m)')
+        xlabel('x (m)')
+        ylim([0 170])
+        xlim([-200 -75])
+        set(gca,'XTickLabel',[]);
+        set(gca,'XTick',[]);
+
+end
+
+if P.Capacity == 1
+
+    figure;    
+    subplot(2,1,1);
+        Y = [6.5  0.1;7.3  0.2;8.1  0.3;8.2  0.1;11.5 0.1;14.7 0.1;20.3 0.3;    %Yearly new installations
+             26.9 0.4;38.5 0.6;39.1 0.9;40.6 0.9;45   1.2;36   1.6;51.7 1.5;
+             63.8 3.4;54.9 2.2;53.5 4.5;50.7 4.4;60.8 6.2;93   6.1];
+    
+        Years = 2001:2025;                                                      % Years in analysis
+    
+        hold on
+        bar(Years(1:20),Y,'stacked')
+    
+        YPred = [87.487*.93 87.487*.07;                                         % Yearly new installation predictions
+                 81.060*.93 81.060*.07;
+                 90.520*.93 90.520*.07;
+                 98.015*.93 98.015*.07;
+                 112.224*.93 112.224*.07];
+    
+        b = bar(Years(21:25),YPred,'stacked','LineStyle',':','linewidth',2);
+        
+        b(1).FaceColor = '#0072BD';                                             % Face color of predictions
+        b(2).FaceColor = '#D95319';
+        b(1).EdgeColor = '#0072BD';                                             % Edge color of predictions
+        b(2).EdgeColor = '#D95319';
+        b(1).FaceAlpha = 0.5;                                                   % Face color opacity of predictions
+        b(2).FaceAlpha = 0.5;
+        ylabel('Yearly New Installations (GW)')
+        legend('Onshore','Offshore','Location','northwest')
+        xlim([Years(1)-0.5 Years(end)+0.5])
+        set(gca,'XTickLabel',[]);
+        set(gca,'XTick',[]);
+        set(gca,'TickLength',[0 0])
+        set(gca, 'Position', [0.1, 0.55, 0.85, 0.425]);
+        box on
+    
+    subplot(2,1,2); 
+        Y = [24   0;31   0;39  -1;48  -1;59  -1;74  -1;94   1;121  1;159  2;    % Yearly installed capacity
+             198  3;238  4;283  5;319  7;370  8;433 12;488 14;540 19;591 23;
+             650 29;743 35];
+    
+        YPred2 = [824.3629 41.1241;                                             % Yearly installed capacity predictions
+                  899.7487 46.7983;
+                  983.9323 53.1347;
+                  1.0751e3 59.9958;
+                  1.1795e3 67.8515];
+        hold on
+        bar(Years(1:20),Y,'stacked')
+    
+        b = bar(Years(21:25),YPred2,'stacked','LineStyle',':','linewidth',2);
+        
+        b(1).FaceColor = '#0072BD';                                             % Face color of predictions
+        b(2).FaceColor = '#D95319';
+        b(1).EdgeColor = '#0072BD';                                             % Edge color of predictions
+        b(2).EdgeColor = '#D95319';
+        b(1).FaceAlpha = 0.5;                                                   % Face color opacity of predictions
+        b(2).FaceAlpha = 0.5;
+        ylabel('Total Installed Capacity (GW)')
+        ylim([0 1300])
+        xlim([Years(1)-0.5 Years(end)+0.5])
+        set(gca,'TickLength',[0 0])
+        box on
+    
+        set(gca, 'Position', [0.1, 0.1, 0.85, 0.425]);
+
+end
+
+if P.CapMap == 1
+
+    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Thesis/Conditional Averages/borders');
+    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Thesis/Conditional Averages');
+        
+    GT = readtable('GlobalTotals.csv');                                     % Import data
+    
+    onshore = table2array(GT(:,2));                                         % Extract capacity data
+    countries = table2cell(GT(:,1));                                        % Extract country names
+ 
+    bins = [logspace(-6,2,10) 150 250];                                     % Capacity bins
+    cmap = parula(length(bins));                                            % Construct colormap
+
+    hold on
+    for i = 1:length(bins)
+        bar(i,0.1,'FaceColor',cmap(i,:))                                    % This is entirely so the legend works
+    end
+
+    borders('countries','k')                                                % Load global map
+    for i = 1:length(onshore)
+        colorI = find(bins < onshore(i), 1, 'last');                        % Find colormap index for each country
+        borders(countries(i),'facecolor',cmap(colorI, :))                   % Apply color to each country
+    end
+
+    LegInfo = {'0   kW - 1   kW';
+               '1   kW - 10  kW';
+               '10  kW - 60  kW';
+               '60  kW - 464 kW';
+               '464 kW - 3.5 MW';
+               '3.5 MW - 27  MW';
+               '27  MW - 215 MW';
+               '215 MW - 1.5 GW';
+               '1.5 GW - 13  GW';
+               '13  GW - 100 GW';
+               '100 GW - 250 GW';
+               '> 250 GW'};
+
+    Leg = legend(LegInfo);
+    title(Leg,'Capacity') 
+    set(Leg,'FontName','monospaced')
+
+    axis tight
+    set(gca,'YTickLabel',[]);
+    set(gca,'XTickLabel',[]);
+
+end
+
+if P.USCapMap == 1
+
+    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Thesis/Conditional Averages/borders');
+    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Thesis/Conditional Averages');
+        
+    GT = readtable('USTotals.csv');                                         % Import data
+    
+    onshore = table2array(GT(:,2));                                         % Extract capacity data
+    countries = table2cell(GT(:,1));                                        % Extract country names
+ 
+    bins = [1 50 100 250 500 1000 2500 5000 10000 15000 50000];                                     % Capacity bins
+    cmap = parula(length(bins));                                            % Construct colormap
+
+    hold on
+    for i = 1:length(bins)
+        bar(i,0.1,'FaceColor',cmap(i,:))                                    % This is entirely so the legend works
+    end
+
+    borders('continental US','k')                                           % Load global map
+    for i = 1:length(onshore)
+        colorI = find(bins < onshore(i), 1, 'last');                        % Find colormap index for each country
+        borders(countries(i),'facecolor',cmap(colorI, :))                   % Apply color to each country
+    end
+
+    LegInfo = {'0   MW - 1   MW';
+               '1   MW - 50  MW';
+               '50  MW - 100 MW';
+               '100 MW - 250 MW';
+               '250 MW - 500 MW';
+               '500 MW - 1   GW';
+               '1   GW - 2.5 GW';
+               '2.5 GW - 5   GW';
+               '5   GW - 10  GW';
+               '10  GW - 15  GW'};
+
+    Leg = legend(LegInfo);
+    title(Leg,'Capacity') 
+    set(Leg,'FontName','monospaced')
+
+    axis tight
+    xlim([-130 -58])
+    ylim([23 52])
+    set(gca,'YTickLabel',[]);
+    set(gca,'XTickLabel',[]);
+
+end
 
 if P.WndFmMap == 1
 
-    longs = [69.915731;
-             69.921821;
-             69.927336;
-             69.930022;
-             69.918603;
-             69.931198;
-             69.942441;
-             69.941349;
-             69.938305;
-             69.928344;
-             69.928476;
-             69.931471;
-             69.929320;
-             69.933209;
-             69.947703;
-             69.950334;
-             69.945089;
-             69.951292;
-             69.955339;
-             69.971150;
-             69.920886;
-             69.948364;
-             69.952242;
-             69.912458;
-             69.898884;
-             69.953340;
-             69.949652;
-             69.980175;
-             69.995010;
-             70.002455;
-             69.921132;
-             69.914808;
-             69.912355;
-             69.905367;
-             69.905153;
-             69.904846;
-             69.894236;
-             69.887205;
-             69.891898;
-             69.884196;
-             69.876398;
-             69.868485;
-             69.888151;
-             69.883213;
-             69.888244;
-             69.898765;
-             69.898859;
-             69.890207;
-             69.887086;
-             69.979744;
-             69.996783;
-             69.943999;
-             69.950159;
-             69.949391;
-             69.948115;
-             69.946593;
-             69.960869;
-             69.959968;
-             69.958938;
-             69.964501;
+    longs = [69.915731;69.921821;69.927336;69.930022;69.918603;69.931198;
+             69.942441;69.941349;69.938305;69.928344;69.928476;69.931471;
+             69.929320;69.933209;69.947703;69.950334;69.945089;69.951292;
+             69.955339;69.971150;69.920886;69.948364;69.952242;69.912458;
+             69.898884;69.953340;69.949652;69.980175;69.995010;70.002455;
+             69.921132;69.914808;69.912355;69.905367;69.905153;69.904846;
+             69.894236;69.887205;69.891898;69.884196;69.876398;69.868485;
+             69.888151;69.883213;69.888244;69.898765;69.898859;69.890207;
+             69.887086;69.979744;69.996783;69.943999;69.950159;69.949391;
+             69.948115;69.946593;69.960869;69.959968;69.958938;69.964501;
              69.971110];
 
-    lats  = [23.014843;
-             23.012679;
-             23.009665;
-             23.006146;
-             23.003806;
-             23.003806;
-             23.003399;
-             22.998739;
-             22.991458;
-             22.987741;
-             22.978922;
-             22.969157;
-             22.963916;
-             22.957746;
-             22.949595;
-             22.956619;
-             22.962667;
-             23.007928;
-             23.003962;
-             23.006133;
-             22.947109;
-             22.917127;
-             22.913670;
-             22.921978;
-             22.941076;
-             22.997640;
-             22.991812;
-             23.006073;
-             22.987714;
-             22.984743;
-             22.961927;
-             22.963397;
-             22.968327;
-             22.962935;
-             22.967161;
-             22.971358;
-             22.989367;
-             22.992495;
-             22.957835;
-             22.957870;
-             22.957405;
-             22.956112;
-             22.950510;
-             22.947430;
-             22.942954;
-             22.949704;
-             22.941063;
-             22.936586;
-             22.931929;
-             22.949876;
-             22.953555;
-             23.026591;
-             23.023910;
-             23.027153;
-             23.031698;
-             23.038400;
-             23.028809;
-             23.032030;
-             23.036633;
-             23.038332;
+    lats  = [23.014843;23.012679;23.009665;23.006146;23.003806;23.003806;
+             23.003399;22.998739;22.991458;22.987741;22.978922;22.969157;
+             22.963916;22.957746;22.949595;22.956619;22.962667;23.007928;
+             23.003962;23.006133;22.947109;22.917127;22.913670;22.921978;
+             22.941076;22.997640;22.991812;23.006073;22.987714;22.984743;
+             22.961927;22.963397;22.968327;22.962935;22.967161;22.971358;
+             22.989367;22.992495;22.957835;22.957870;22.957405;22.956112;
+             22.950510;22.947430;22.942954;22.949704;22.941063;22.936586;
+             22.931929;22.949876;22.953555;23.026591;23.023910;23.027153;
+             23.031698;23.038400;23.028809;23.032030;23.036633;23.038332;
              23.036943];
 
 figure;
@@ -141,7 +451,7 @@ figure;
 
     for i = 1:length(longs)
 
-        plot(longs(i),lats(i),'marker','o','markersize',12,'color','k','markerfacecolor','#fc4903')
+        plot(longs(i),lats(i),'marker','o','markersize',10,'color','k','markerfacecolor','#fc4903')
 
     end
 
@@ -151,32 +461,34 @@ figure;
     yoffset = 0.005;
     leftx   = WndFamMap.long(1) + xoffset;
     yheight = WndFamMap.lat(end) + yoffset;
+%     leftx   = 69.87544;
+%     yheight = 22.92045;
 
-    barlength = 0.01;
+    barlength = 0.014565;
     barheight = 0.0007;
 
     rectangle('Position',[leftx,yheight,barlength,barheight],'FaceColor','#a7a7a7','EdgeColor','#a7a7a7','LineWidth',3)
     rectangle('Position',[leftx + barlength,yheight,barlength,barheight],'FaceColor','#c5c5c5','EdgeColor','#c5c5c5','LineWidth',3)
-    text(leftx,yheight + 3*barheight,'0','HorizontalAlignment','center','FontSize',10,'FontWeight','bold')
-    text(leftx + barlength,yheight + 3*barheight,'0.5','HorizontalAlignment','center','FontSize',10,'FontWeight','bold')
-    text(leftx + 2 * barlength,yheight + 3*barheight,'1 km','HorizontalAlignment','center','FontSize',10,'FontWeight','bold')
+    text(leftx,yheight + 4*barheight,'0','HorizontalAlignment','center','FontSize',10,'FontWeight','bold')
+    text(leftx + barlength,yheight + 4*barheight,'1.5','HorizontalAlignment','center','FontSize',10,'FontWeight','bold')
+    text(leftx + 2 * barlength,yheight + 4*barheight,'3 km','HorizontalAlignment','center','FontSize',10,'FontWeight','bold')
 
     % Cardinal direction pointer
 
     centerx = 69.99;
     centery = 23.03;
     
-        x = [centerx - 0.0012, centerx, centerx];
-        y = [centery - 0.0012, centery, centery + 0.0024];
+        x = [centerx - 0.002, centerx, centerx];
+        y = [centery - 0.002, centery, centery + 0.0032];
         c = [0 0 0];
         fill(x, y, c)
         
-        x = [centerx, centerx, centerx + 0.0012];
-        y = [centery, centery + 0.0024, centery - 0.0012];
+        x = [centerx, centerx, centerx + 0.002];
+        y = [centery, centery + 0.0032, centery - 0.002];
         c = [1 1 1];
         fill(x, y, c)
     
-    text(centerx,centery + 0.005,'N','HorizontalAlignment','center','FontSize',13,'FontWeight','bold')
+    text(centerx,centery + 0.006,'N','HorizontalAlignment','center','FontSize',13.5,'FontWeight','bold')
 
     % LIDAR marker
 
@@ -389,11 +701,12 @@ if P.WindRoseFull == 1
     pax.ThetaZeroLocation = 'top';                                              % North pointing
     
     Leg = legend('Show');
-    title(Leg,'Wind speed [m s^{-1}]')                                          % Set legend title
+    title(Leg,'Wind Speed [m s^{-1}]')                                          % Set legend title
+    set(Leg,'FontName','monospaced')                                            % Proper spacing
     legend('AutoUpdate','off')                                                  % Prevent subsequent plot from being added to legend
     box(Leg,'off')                                                              % Remove outline from legend
     set(gca,'rticklabel',[])                                                    % Remove default radial markers
-    set(gca,'FontSize',16)
+    set(gca,'FontSize',18)
     
     TotalPoints = sum(WindSpeed>0);
     axlims    = rlim;                                                           % Find radial limits
@@ -406,9 +719,9 @@ if P.WindRoseFull == 1
     h.DisplayStyle = 'stairs';                                                  % Set outline style
     h.EdgeColor    = [0 0 0];                                                   % Set color to black                                                   
     
-    text(angle, positions(2), sprintf('%2.0f%%',100*positions(2)/TotalPoints),'HorizontalAlignment','center','FontSize',12);
-    text(angle, positions(3), sprintf('%2.0f%%',100*positions(3)/TotalPoints),'HorizontalAlignment','center','FontSize',12);
-    text(angle, positions(4), sprintf('%2.0f%%',100*positions(4)/TotalPoints),'HorizontalAlignment','center','FontSize',12);
+    text(angle, positions(2), sprintf('%2.0f%%',100*positions(2)/TotalPoints),'HorizontalAlignment','center','FontSize',15);
+    text(angle, positions(3), sprintf('%2.0f%%',100*positions(3)/TotalPoints),'HorizontalAlignment','center','FontSize',15);
+    text(angle, positions(4), sprintf('%2.0f%%',100*positions(4)/TotalPoints),'HorizontalAlignment','center','FontSize',15);
     
     hold off;
 
@@ -444,6 +757,7 @@ if P.WindRoseAnalysis == 1
     
     Leg = legend('Show');
     title(Leg,'Wind speed [m s^{-1}]')                                          % Set legend title
+    set(Leg,'FontName','monospaced')                                            % Proper spacing
     legend('AutoUpdate','off')                                                  % Prevent subsequent plot from being added to legend
     box(Leg,'off')                                                              % Remove outline from legend
     set(gca,'rticklabel',[])                                                    % Remove default radial markers
@@ -1165,73 +1479,73 @@ end
 if P.FitErrorTOD == 1
 
     figure;
-FullAlphaIndices   = ~isnan(PLFull.alpha);
-InflecAlphaIndices = ~isnan(PLInflec.alpha);
-EkmanIndices       = ~isnan(Ekman.K);
-
-FullIndices = FullAlphaIndices .* InflecAlphaIndices .* EkmanIndices;
-
-FullIndices(FullIndices == 0) = NaN;
-
-y = FullIndices .* PLFull.R;
-x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
-
-plot(x,y)
-hold on
-
-y = FullIndices .* PLInflec.R;
-x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
-
-plot(x,y)
-
-y = FullIndices .* Ekman.R;
-x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
-
-plot(x,y)
-
-% ylim([-60 1])
-ylabel('Coefficient of Determination - R^2')
-legend('Power Law - Full Profile','Power Law - Partial Profile','Ekman Fit')
-
-end
-
-if P.PLFullRProb == 1
-
-    figure;                                                                 % Inflection profile fit
-        [Probs,Edges] = histcounts(PLFull.R,250,...
-            'Normalization','probability','BinLimits',[-1.5 1.1]);
-        plot(Edges(1:end-1),Probs,'LineWidth',1.5);
-
+        FullAlphaIndices   = ~isnan(PLFull.alpha);
+        InflecAlphaIndices = ~isnan(PLInflec.alpha);
+        EkmanIndices       = ~isnan(Ekman.K);
+        
+        FullIndices = FullAlphaIndices .* InflecAlphaIndices .* EkmanIndices;
+        
+        FullIndices(FullIndices == 0) = NaN;
+        
+        y = FullIndices .* PLFull.R;
+        x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+        
+        plot(x,y)
         hold on
-
-        [Probs,Edges] = histcounts(PLFullold.R,250,...
-            'Normalization','probability','BinLimits',[-1.5 1.1]);
-        plot(Edges(1:end-1),Probs,'LineWidth',1.5);
-
-        xlim([-1.5 0.99])
-
-        legend('Full Profile Optimization','Full Profile Toolbox')
-
-end
-
-if P.PLInflecRProb == 1
-
-    figure;                                                                 % Inflection profile fit
-        [Probs,Edges] = histcounts(PLInflec.R,150,...
-            'Normalization','probability','BinLimits',[0 1.1]);
-        plot(Edges(1:end-1),Probs,'LineWidth',1.5);
-
-        hold on
-
-        [Probs,Edges] = histcounts(PLInflecold.R,150,...
-            'Normalization','probability','BinLimits',[0 1.1]);
-        plot(Edges(1:end-1),Probs,'LineWidth',1.5);
-
-        xlim([0 0.99])
-
-        legend('Partial Profile Optimization','Partial Profile Toolbox')
+        
+        y = FullIndices .* PLInflec.R;
+        x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+        
+        plot(x,y)
+        
+        y = FullIndices .* Ekman.R;
+        x = duration(minutes(linspace(0,1439,length(y))),'Format','hh:mm');
+        
+        plot(x,y)
+        
+        % ylim([-60 1])
+        ylabel('Coefficient of Determination - R^2')
+        legend('Power Law - Full Profile','Power Law - Partial Profile','Ekman Fit')
 
 end
+
+% if P.PLFullRProb == 1
+% 
+%     figure;                                                                 % Inflection profile fit
+%         [Probs,Edges] = histcounts(PLFull.R,250,...
+%             'Normalization','probability','BinLimits',[-1.5 1.1]);
+%         plot(Edges(1:end-1),Probs,'LineWidth',1.5);
+% 
+%         hold on
+% 
+%         [Probs,Edges] = histcounts(PLFullold.R,250,...
+%             'Normalization','probability','BinLimits',[-1.5 1.1]);
+%         plot(Edges(1:end-1),Probs,'LineWidth',1.5);
+% 
+%         xlim([-1.5 0.99])
+% 
+%         legend('Full Profile Optimization','Full Profile Toolbox')
+% 
+% end
+% 
+% if P.PLInflecRProb == 1
+% 
+%     figure;                                                                 % Inflection profile fit
+%         [Probs,Edges] = histcounts(PLInflec.R,150,...
+%             'Normalization','probability','BinLimits',[0 1.1]);
+%         plot(Edges(1:end-1),Probs,'LineWidth',1.5);
+% 
+%         hold on
+% 
+%         [Probs,Edges] = histcounts(PLInflecold.R,150,...
+%             'Normalization','probability','BinLimits',[0 1.1]);
+%         plot(Edges(1:end-1),Probs,'LineWidth',1.5);
+% 
+%         xlim([0 0.99])
+% 
+%         legend('Partial Profile Optimization','Partial Profile Toolbox')
+% 
+% end
 
 % figure;
 %     plot(datetime(D.Time,'ConvertFrom','datenum'),Ekman.R)

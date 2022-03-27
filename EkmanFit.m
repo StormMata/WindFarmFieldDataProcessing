@@ -66,21 +66,21 @@ for i = 1:size(Shear,2)
 
             Rtemp(j) = 1-sum((ydata - yfit).^2)/sum((ydata - mean(ydata)).^2);
 
-            RMSE(j) = sqrt(mean((ydata - yfit).^2));
+            RMSE(j) = sqrt(mean((ydata - yfit).^2))/mean(Shear(:,i));
 
         end
 
-        if fits(2,1) == fits(2,2)
-            v    = Rtemp(1);
-            maxi = 1;
-        else
+%         if fits(2,1) == fits(2,2)
+%             v    = Rtemp(1);
+%             maxi = 1;
+%         else
             [v,maxi] = max(Rtemp);
-        end
+%         end
 
         Ekman.K(i)       = fits(2,maxi);                                     % Store eddy diffusivity for each profile
         Ekman.G(i)       = fits(1,maxi);                                     % Store geostrophic wind for each profile
         Ekman.R(i)       = v;
-        Ekman.NRMSE(i)   = RMSE(maxi)/mean(Shear(:,i));                      % Store normalized Root Mean Square Error for each fit
+        Ekman.NRMSE(i)   = RMSE(maxi);                                      % Store normalized Root Mean Square Error for each fit
     
     catch
     

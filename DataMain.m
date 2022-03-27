@@ -29,7 +29,7 @@
 % Wind
 
 
-clearvars -except data WndFamMap % Ekman PLFull PLInflec
+clearvars -except data Ekman PLFull PLInflec WndFamMap
 %close all
 clc
 
@@ -181,6 +181,15 @@ figure
 
 %% Plot Selection
 
+% --- Turbine Drawing -----------------------------------------------------
+P.TurbineSchema     = 0;    % Wind turbine diagram
+P.WindSchema        = 0;    % Wind turbine with power law and ekman profiles
+
+% --- Installed Capacity --------------------------------------------------
+P.Capacity          = 1;    % Yearly global capacity
+P.CapMap            = 0;    % Global capacity heat map
+P.USCapMap          = 0;    % US capacity heat map
+
 % --- Map -----------------------------------------------------------------
 P.WndFmMap          = 0;    % Wind farm contour map
 
@@ -216,14 +225,14 @@ P.HistoPowerAA      = 0;    % Average power with histogram overlaid, all average
 P.HistoPowerAALG    = 0;    % Average power with histogram overlaid, all average, AA < Hub, AA > Hub
 
 % --- Speed Shear Alpha ---------------------------------------------------
-P.AlphaBetaFull     = 1;    % Full color direction shear heatmap
+P.AlphaBetaFull     = 0;    % Full color direction shear heatmap
 P.AlphaBetaMono     = 0;    % Monochromatic color direction shear heatmap
 P.AlphaBetaLH       = 0;    % Two-color direction shear heatmap
 P.SSFull            = 0;    % Probability of occurence, Full profile fit
 P.SSInflec          = 0;    % Probability of occurence, Partial profile fit
 
 % --- Ekman Parameter -----------------------------------------------------
-P.KmBetaFull        = 1;
+P.KmBetaFull        = 0;
 
 % --- Direction Shear -----------------------------------------------------
 P.DSprob            = 0;    % Probability of occurence
@@ -231,19 +240,7 @@ P.DSprob            = 0;    % Probability of occurence
 % --- Ekman Parameter -----------------------------------------------------
 P.EkmanProb         = 0;    % Probability of occurence   
 
-
-
-
 PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,KB,KmBeta,PDFs,PLFull,PLInflec,Ekman,Ep,WndFamMap)
-
-
-
-
-
-
-
-
-
 
 %% Ep v. Alpha Full 
 
