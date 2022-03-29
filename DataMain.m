@@ -36,7 +36,7 @@ clc
 %% Section 1 - Physical constants and global variables
 
 % Windfarm
-    T.TOI      = 62;                                                            % Turbine of interest           [-]
+    T.TOI      = [59 62 58];                                                            % Turbine of interest           [-]
     T.Lat      = 23;                                                            % Latitude of wind farm         [deg]
 
 % LiDAR
@@ -60,6 +60,9 @@ clc
 % Data binning parameters
     T.HubRow   = find(flip(T.Heights)==104);                                    % Find row with hub-height measurements (104m)
     T.numbins  = 40;                                                            % Number of bins                [-]         
+
+% Random seed for sampling
+    T.Seed     = 4096;                                                          
 
 %% Section 2 - Load Data
 
@@ -88,14 +91,9 @@ end
     C.E         = 45;                                                           % Max eastward inflow angle     [deg]
     C.W         = 330;                                                          % Max westward inflow angle     [deg]
 
-% Create filter
-    Indices = IntFilter(C, T, data);                                            % Return indices of filtered data
-
-clear C
-
 %% Section 4 - Extract data and apply initial filter
 
-    [D,Indices] = ExtractData(T,data,Indices);                                  % Performs initial filtering
+    [D,Indices] = ExtractDataM(C,T,data);                                  % Performs initial filtering
 
 %% Section 5 - Find adjusted wind angle
 
@@ -137,7 +135,7 @@ clear C
 
 %% Section 13 - Km/Beta Relationship
 
-    N.Km = [0 1];                                                          % Speed shear range [low high]
+    N.Km = [0 1];                                                               % Speed shear range [low high]
     N.DS = [-0.1 0.6];                                                          % Direction shear range [low high]
     N.s  = 0.1;                                                                 % Increment size
 
@@ -147,46 +145,14 @@ clear C
 
     [WndFamMap] = WndFamMap();
 
-%%
-
-angavg  = mean(reshape(data.BHR62.Pitch,10,[]));
-wndbin  = data.Lidar.H104m.WndSpd(5:10:end);
-
-angavg(isnan(angavg)) =  0;
-wndbin(isnan(angavg)) =  0;
-
-angavg(isnan(wndbin)) =  0;
-wndbin(isnan(wndbin)) =  0;
-
-bins = 0:0.5:floor(max(wndbin));
-
-for i = 1:length(bins)
-    MAD(i)  = mad((nonzeros((wndbin > bins(i) & wndbin <= (bins(i)+0.5)) .* angavg)));
-end
-%     MADhigh = angavg+4.5*MAD;
-%     MADlow  = angavg-4.5*MAD;
-
-scatter(wndbin,angavg)
-scatter([D.Shear(7,5:10:end) 0 0 0 0 0 0 0],mean(reshape([D.Pitch zeros(1,67)],10,[])))
-figure
-
-    hold on
-    scatter(wndbin(angavg>MADhigh),angavg(angavg>MADhigh),'red',Marker='.')
-    scatter(wndbin(angavg<MADlow),angavg(angavg<MADlow),'red',Marker='.')
-    scatter(wndbin(angavg<=MADhigh & angavg>=MADlow),angavg(angavg<=MADhigh & angavg>=MADlow),'blue',Marker='.')
-
-
-
-
-
-%% Plot Selection
+%% Plot Selections
 
 % --- Turbine Drawing -----------------------------------------------------
 P.TurbineSchema     = 0;    % Wind turbine diagram
 P.WindSchema        = 0;    % Wind turbine with power law and ekman profiles
 
 % --- Installed Capacity --------------------------------------------------
-P.Capacity          = 1;    % Yearly global capacity
+P.Capacity          = 0;    % Yearly global capacity
 P.CapMap            = 0;    % Global capacity heat map
 P.USCapMap          = 0;    % US capacity heat map
 
@@ -221,7 +187,7 @@ P.GPD               = 0;    % Vertical hist of power by wind speed bins, AA > Hu
 P.LPD               = 0;    % Vertical hist of power by wind speed bins, AA < Hub
 
 % --- Wind Speed Bins -----------------------------------------------------
-P.HistoPowerAA      = 0;    % Average power with histogram overlaid, all average
+P.HistoPowerAA      = 1;    % Average power with histogram overlaid, all average
 P.HistoPowerAALG    = 0;    % Average power with histogram overlaid, all average, AA < Hub, AA > Hub
 
 % --- Speed Shear Alpha ---------------------------------------------------
@@ -241,6 +207,210 @@ P.DSprob            = 0;    % Probability of occurence
 P.EkmanProb         = 0;    % Probability of occurence   
 
 PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,KB,KmBeta,PDFs,PLFull,PLInflec,Ekman,Ep,WndFamMap)
+
+%% get 10 min medians
+
+clear index PLFullMedians EkmanMedians MedProfiles
+
+[~,~,~,H,MN,~] = datevec(D.Time);
+
+h = 0:23;
+
+m = [0  4;
+     5  9;
+     10 14;
+     15 19;
+     20 24;
+     25 29;
+     30 34;
+     35 39;
+     40 44;
+     45 49;
+     50 54;
+     55 59];
+
+% m = [0  9;
+%      10 19;
+%      20 29;
+%      30 39;
+%      40 49;
+%      50 59;];
+
+% m = [0  14;
+%      15 29;
+%      30 44;
+%      45 59;];
+
+% m = [0  19;
+%      20 39;
+%      40 59;];
+
+% m = [0  29;
+%      30 59;];
+
+% m = [0  59;];
+
+i = 1;
+
+for hour = 1:length(h)
+    for minute = 1:size(m,1)
+        index(i,:) = (H == h(hour) & MN >= m(minute,1) & MN <= m(minute,2));
+
+        vector = index(i,:) .* D.Shear;
+        vector = vector(:,any(vector));
+
+        MedProfiles(:,i) = median(vector ,2);
+        i = i+1;
+    end
+end
+
+[PLFullMedians] = PowerLawFit(MedProfiles,T,'Full');
+[EkmanMedians]  = EkmanFit(MedProfiles,T);
+
+% plot(MedProfiles(:,16:20),flip(T.Heights))
+% i = 20;
+
+% x = 0:200;a = EkmanMedians.K(i);b = EkmanMedians.G(i);u = sqrt((b .* (1 - exp(-sqrt((2*7.292e-5*sind(23))./(2*a)).*x) .* cos(sqrt((2*7.292e-5*sind(23))./(2*a)).*x))).^2+(b .* exp(-sqrt((2*7.292e-5*sind(23))./(2*a)).*x) .* sin(sqrt((2*7.292e-5*sind(23))./(2*a)).*x)).^2);
+
+tit = [60 30 20 15 10 5];
+
+% figure
+i = 6;
+
+h(i) = subplot(2,3,i);
+taxis = duration(minutes(linspace(0,1439,size(MedProfiles,2))),'Format','hh:mm');
+plot(taxis,EkmanMedians.NRMSE,'LineWidth',0.75)
+hold on
+plot(taxis,PLFullMedians.NRMSE,'LineWidth',0.75)
+xlim([taxis(1) taxis(end)])
+ylim([0 0.09])
+title(sprintf('%2.0f - Minute',tit(i)))
+
+if i == 1
+    set(h(i), 'Position', [0.05 0.52 1/3.3 0.45])
+    ylabel('NRMSE')
+elseif i == 2
+    set(h(i), 'Position', [0.06+1/3.3 0.52 1/3.3 0.45])
+elseif i == 3
+    set(h(i), 'Position', [0.07+2/3.3 0.52 1/3.3 0.45])
+elseif i == 4
+    set(h(i), 'Position', [0.05 0.04 1/3.3 0.45])
+    ylabel('NRMSE')
+elseif i == 5
+    set(h(i), 'Position', [0.06+1/3.3 0.04 1/3.3 0.45])
+else
+    set(h(i), 'Position', [0.07+2/3.3 0.04 1/3.3 0.45])
+end
+
+if i == 2 || i == 3 || i == 5 || i == 6
+    set(gca,'YTickLabel',[]);
+end
+
+if i == 1 || i == 2 || i == 3
+    set(gca,'XTickLabel',[]);
+end
+
+if i == 1
+    legend('Ekman','Power Law')
+end
+
+
+% plot(MedProfiles(:,i),flip(T.Heights))
+% hold on
+% plot(u,x)
+
+%% median profiles - full day
+
+rng(T.Seed);
+
+[Y,M,~,H,MN,S] = datevec(D.Time);
+
+for i = 1:24
+
+h(i) = subplot(4,6,i);
+
+TOD = i-1;
+
+ind = 1:size(D.Shear,2);
+ind = ind(H == TOD);
+
+MedianU = median(D.Shear(:,ind)./D.Shear(end,ind),2);                           % Calculate median hourly profiles
+STDU = std(D.Shear(:,ind)./D.Shear(end,ind),[],2);                              % Calculate standard deviation of profiles
+indplot = datasample(ind,10);                                                   % Select 10 random profiles
+
+% figure;
+    hold on
+    plot(D.Shear(:,indplot)./D.Shear(end,indplot), flip(T.Heights), 'LineWidth', 1);
+    shadedErrorBar(MedianU, flip(T.Heights), STDU, 'lineProps',{'-', ...
+        'Color', 'k', 'LineWidth', 2.5, 'MarkerSize', 2}, 'vertical', 0);
+        yline(T.Hub,'k-','LineWidth',1.75)
+        yline(T.Hub+T.R,'k--','LineWidth',0.75)
+        yline(T.Hub-T.R,'k--','LineWidth',0.75)
+        xlim([0.3,2])
+        ylim([40,T.Heights(end)])
+        titstr = sprintf('%2.0f:00',TOD);
+        text(0.5,180,titstr,'HorizontalAlignment','center','FontSize',12)
+
+    set(gca,'ytick',[])
+    if i == 1 || i == 7 || i == 13 || i ==19
+        ylabel('z (m)')
+    end
+    if i <= 18
+        set(gca,'xticklabel',[])
+    end
+    if i >= 19
+        xlabel('U(z)/U_{43 m}')
+    end
+
+end
+
+for i = 1:24
+
+    ht = 0.23;
+    s  = 0.01;
+    b  = 0.04;
+
+    if i >= 1 && i <= 6 
+        set(h(i), 'Position', [0.03+(i-1)/6.2 s*4+3*ht+b 1/6.35 ht])
+    elseif i >= 7 && i <= 12
+        set(h(i), 'Position', [0.03+(i-7)/6.2 s*3+2*ht+b 1/6.35 ht])
+    elseif i >= 13 && i <= 18
+        set(h(i), 'Position', [0.03+(i-13)/6.2 s*2+ht+b 1/6.35 ht])
+    elseif i >= 19
+        set(h(i), 'Position', [0.03+(i-19)/6.2 s+b 1/6.35 ht])
+    end
+
+end
+
+%% median profiles - single hour
+
+rng(T.Seed);
+
+[Y,M,~,H,MN,S] = datevec(D.Time);
+
+TOD = 17;
+
+ind = 1:size(D.Shear,2);
+ind = ind(H == TOD);
+
+MedianU = median(D.Shear(:,ind)./D.Shear(end,ind),2);                           % Calculate median hourly profiles
+STDU = std(D.Shear(:,ind)./D.Shear(end,ind),[],2);                              % Calculate standard deviation of profiles
+indplot = datasample(ind,10);                                                   % Select 10 random profiles
+
+figure;
+    hold on
+    plot(D.Shear(:,indplot)./D.Shear(end,indplot), flip(T.Heights), 'LineWidth', 1);
+    shadedErrorBar(MedianU, flip(T.Heights), STDU, 'lineProps',{'-', ...
+        'Color', 'k', 'LineWidth', 2.5, 'MarkerSize', 2}, 'vertical', 0);
+        yline(T.Hub,'k-','LineWidth',1.75)
+        yline(T.Hub+T.R,'k--','LineWidth',0.75)
+        yline(T.Hub-T.R,'k--','LineWidth',0.75)
+        xlim([0.3,2])
+        ylim([40,T.Heights(end)])
+        titstr = sprintf('Mean Speed Shear at %2.0f:00 Hours',TOD);
+        title(titstr)
+        ylabel('z (m)')
+        xlabel('U(z)/U_{43 m}')
 
 %% Ep v. Alpha Full 
 
@@ -295,6 +465,37 @@ xaxis = linspace(min(PLInflec.alpha),max(PLInflec.alpha),Bins);
             ylabel('\epsilon_P (kW)')
             xlabel('\alpha (-)')
             title('\epsilon_P vs. Power Law Alpha (Partial Profile)')
+
+%%
+
+angavg  = mean(reshape(data.BHR62.Pitch,10,[]));
+wndbin  = data.Lidar.H104m.WndSpd(5:10:end);
+
+angavg(isnan(angavg)) =  0;
+wndbin(isnan(angavg)) =  0;
+
+angavg(isnan(wndbin)) =  0;
+wndbin(isnan(wndbin)) =  0;
+
+bins = 0:0.5:floor(max(wndbin));
+
+for i = 1:length(bins)
+    MAD(i)  = mad((nonzeros((wndbin > bins(i) & wndbin <= (bins(i)+0.5)) .* angavg)));
+end
+%     MADhigh = angavg+4.5*MAD;
+%     MADlow  = angavg-4.5*MAD;
+
+scatter(wndbin,angavg)
+scatter([D.Shear(7,5:10:end) 0 0 0 0 0 0 0],mean(reshape([D.Pitch zeros(1,67)],10,[])))
+figure
+
+    hold on
+    scatter(wndbin(angavg>MADhigh),angavg(angavg>MADhigh),'red',Marker='.')
+    scatter(wndbin(angavg<MADlow),angavg(angavg<MADlow),'red',Marker='.')
+    scatter(wndbin(angavg<=MADhigh & angavg>=MADlow),angavg(angavg<=MADhigh & angavg>=MADlow),'blue',Marker='.')
+
+
+            
 
 %% ------ Item 1 ------
 

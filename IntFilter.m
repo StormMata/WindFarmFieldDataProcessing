@@ -1,4 +1,4 @@
-function [Indices] = IntFilter(C, T, data)
+function [Indices] = IntFilter(C, T, z, data)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -14,13 +14,13 @@ function [Indices] = IntFilter(C, T, data)
 
 % Turbine Conditions
 
-    CondTuAv  = data.(strcat('BHR',num2str(T.TOI,'%02.f'))).Available         == C.TAv;         % Retrieve TOI availability
-    CondOp    = data.(strcat('BHR',num2str(T.TOI,'%02.f'))).OpSt              == C.OpSt;        % Retrieve TOI operational status
-    CondStrat = data.(strcat('BHR',num2str(T.TOI,'%02.f'))).WFCStrategy       == C.WFCStrat;    % Retrieve TOI control strategy
-    CondYaw   = data.(strcat('BHR',num2str(T.TOI,'%02.f'))).YawOffsetApplied  == C.OffsetAp;    % Retrieve TOI Yaw offset
+    CondTuAv  = data.(strcat('BHR',num2str(T.TOI(z),'%02.f'))).Available         == C.TAv;         % Retrieve TOI availability
+    CondOp    = data.(strcat('BHR',num2str(T.TOI(z),'%02.f'))).OpSt              == C.OpSt;        % Retrieve TOI operational status
+    CondStrat = data.(strcat('BHR',num2str(T.TOI(z),'%02.f'))).WFCStrategy       == C.WFCStrat;    % Retrieve TOI control strategy
+    CondYaw   = data.(strcat('BHR',num2str(T.TOI(z),'%02.f'))).YawOffsetApplied  == C.OffsetAp;    % Retrieve TOI Yaw offset
 
     if C.NacPos == 1
-        CondNac = ~isnan(data.(strcat('BHR',num2str(T.TOI,'%02.f'))).NacellePosition_corrected);% Retrieve Nacelle Heading
+        CondNac = ~isnan(data.(strcat('BHR',num2str(T.TOI(z),'%02.f'))).NacellePosition_corrected);% Retrieve Nacelle Heading
     else 
         CondNac = ones(length(CondTuAV));                                                       % Ignore Nacelle Heading
     end

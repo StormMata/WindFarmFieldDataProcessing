@@ -278,13 +278,14 @@ if P.Capacity == 1
         b(2).EdgeColor = '#D95319';
         b(1).FaceAlpha = 0.5;                                                   % Face color opacity of predictions
         b(2).FaceAlpha = 0.5;
-        ylabel('Yearly New Installations (GW)')
+        ylabel('Yearly New Capacity (GW)','FontSize',10)
         legend('Onshore','Offshore','Location','northwest')
         xlim([Years(1)-0.5 Years(end)+0.5])
         set(gca,'XTickLabel',[]);
         set(gca,'XTick',[]);
         set(gca,'TickLength',[0 0])
         set(gca, 'Position', [0.1, 0.55, 0.85, 0.425]);
+        text(2001,110,'(a)','FontSize',14)
         box on
     
     subplot(2,1,2); 
@@ -308,10 +309,11 @@ if P.Capacity == 1
         b(2).EdgeColor = '#D95319';
         b(1).FaceAlpha = 0.5;                                                   % Face color opacity of predictions
         b(2).FaceAlpha = 0.5;
-        ylabel('Total Installed Capacity (GW)')
+        ylabel('Total Capacity (GW)','FontSize',10)
         ylim([0 1300])
         xlim([Years(1)-0.5 Years(end)+0.5])
         set(gca,'TickLength',[0 0])
+        text(2001,1175,'(b)','FontSize',14)
         box on
     
         set(gca, 'Position', [0.1, 0.1, 0.85, 0.425]);
@@ -328,11 +330,15 @@ if P.CapMap == 1
     onshore = table2array(GT(:,2));                                         % Extract capacity data
     countries = table2cell(GT(:,1));                                        % Extract country names
  
-    bins = [logspace(-6,2,10) 150 250];                                     % Capacity bins
+%     bins = [logspace(-6,2,10) 150];                                     % Capacity bins
+%     bins = [0 10*bins(1) bins(3:7) 0.750 bins(8:end)];
+    bins = [0 5/1e6 100/1e6 500/1e6 1e3 5/1e3 50/1e3 100/1e3 100/1e3 500/1e3 1 5 50 100 250];
+
     cmap = parula(length(bins));                                            % Construct colormap
+    cmap = [[1 1 1]; cmap];
 
     hold on
-    for i = 1:length(bins)
+    for i = [1 3 4 5 6 7 8 9 10 11 12 13 14 15]
         bar(i,0.1,'FaceColor',cmap(i,:))                                    % This is entirely so the legend works
     end
 
@@ -342,16 +348,18 @@ if P.CapMap == 1
         borders(countries(i),'facecolor',cmap(colorI, :))                   % Apply color to each country
     end
 
-    LegInfo = {'0   kW - 1   kW';
-               '1   kW - 10  kW';
-               '10  kW - 60  kW';
-               '60  kW - 464 kW';
-               '464 kW - 3.5 MW';
-               '3.5 MW - 27  MW';
-               '27  MW - 215 MW';
-               '215 MW - 1.5 GW';
-               '1.5 GW - 13  GW';
-               '13  GW - 100 GW';
+    LegInfo = {'NO DATA';
+               '0   kW - 100 kW';
+               '100 kW - 500 kW';
+               '500 kW - 1   MW';
+               '1   MW - 5   MW';
+               '5   MW - 50  MW';
+               '50  MW - 100 MW';
+               '100 MW - 500 MW';
+               '500 MW - 1   GW';
+               '1   GW - 5   GW';
+               '5   GW - 50  GW';
+               '50  GW - 100 GW';
                '100 GW - 250 GW';
                '> 250 GW'};
 
@@ -362,6 +370,7 @@ if P.CapMap == 1
     axis tight
     set(gca,'YTickLabel',[]);
     set(gca,'XTickLabel',[]);
+    box on
 
 end
 
@@ -377,6 +386,7 @@ if P.USCapMap == 1
  
     bins = [1 50 100 250 500 1000 2500 5000 10000 15000 50000];                                     % Capacity bins
     cmap = parula(length(bins));                                            % Construct colormap
+    cmap = [[1 1 1];cmap];
 
     hold on
     for i = 1:length(bins)
@@ -389,7 +399,7 @@ if P.USCapMap == 1
         borders(countries(i),'facecolor',cmap(colorI, :))                   % Apply color to each country
     end
 
-    LegInfo = {'0   MW - 1   MW';
+    LegInfo = {'NO DATA';
                '1   MW - 50  MW';
                '50  MW - 100 MW';
                '100 MW - 250 MW';
@@ -405,10 +415,11 @@ if P.USCapMap == 1
     set(Leg,'FontName','monospaced')
 
     axis tight
-    xlim([-130 -58])
+    xlim([-125 -64.5])
     ylim([23 52])
     set(gca,'YTickLabel',[]);
     set(gca,'XTickLabel',[]);
+    box on
 
 end
 
@@ -492,7 +503,7 @@ figure;
 
     % LIDAR marker
 
-    centerx = 69.91875;
+    centerx = 69.9122;
     centery = 23.018;
     side = 0.00075;
     
@@ -501,7 +512,8 @@ figure;
         c = [0 0 0];
         fill(x, y, c)
     
-    centerx = 69.91875;
+%     centerx = 69.91875;
+    centerx = 69.9122;
     centery = 23.018;
     side = 0.00075;
     
@@ -516,6 +528,11 @@ figure;
     set(gca,'XTick',[]);
     axis equal
     ylabel(colorbar('eastoutside'),'Elevation (m)')
+
+    % Array marker
+
+    rectangle('Position',[69.9142 23.0076 0.0153 0.0090],'linestyle','--','LineWidth',1.25)
+%     rectangle('Position',[69.9126 22.9997 0.0225 0.0229],'LineWidth',1.25)
 
 end
 
