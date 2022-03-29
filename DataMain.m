@@ -147,6 +147,9 @@ end
 
 %% Plot Selections
 
+% --- Normalized Wind Speed -----------------------------------------------
+P.ShearProfMedians  = 0;    % Median hourly speed shear normalized by U(43)
+
 % --- Turbine Drawing -----------------------------------------------------
 P.TurbineSchema     = 0;    % Wind turbine diagram
 P.WindSchema        = 0;    % Wind turbine with power law and ekman profiles
@@ -180,6 +183,7 @@ P.EkTODMED          = 0;    % Ekman parameter evolution, 10-min MEDIANS
 P.InflecTODHisto    = 0;    % Inflection height hourly histograms
 P.InflecTOD         = 0;
 P.FitErrorTOD       = 0;
+P.ShearMedError     = 0;    % NRMSE of Ekman and PL by time of day
 
 % --- Counts --------------------------------------------------------------
 P.AAPD              = 0;    % Vertical hist of power by wind speed bins, all average
@@ -207,210 +211,6 @@ P.DSprob            = 0;    % Probability of occurence
 P.EkmanProb         = 0;    % Probability of occurence   
 
 PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,KB,KmBeta,PDFs,PLFull,PLInflec,Ekman,Ep,WndFamMap)
-
-%% get 10 min medians
-
-clear index PLFullMedians EkmanMedians MedProfiles
-
-[~,~,~,H,MN,~] = datevec(D.Time);
-
-h = 0:23;
-
-m = [0  4;
-     5  9;
-     10 14;
-     15 19;
-     20 24;
-     25 29;
-     30 34;
-     35 39;
-     40 44;
-     45 49;
-     50 54;
-     55 59];
-
-% m = [0  9;
-%      10 19;
-%      20 29;
-%      30 39;
-%      40 49;
-%      50 59;];
-
-% m = [0  14;
-%      15 29;
-%      30 44;
-%      45 59;];
-
-% m = [0  19;
-%      20 39;
-%      40 59;];
-
-% m = [0  29;
-%      30 59;];
-
-% m = [0  59;];
-
-i = 1;
-
-for hour = 1:length(h)
-    for minute = 1:size(m,1)
-        index(i,:) = (H == h(hour) & MN >= m(minute,1) & MN <= m(minute,2));
-
-        vector = index(i,:) .* D.Shear;
-        vector = vector(:,any(vector));
-
-        MedProfiles(:,i) = median(vector ,2);
-        i = i+1;
-    end
-end
-
-[PLFullMedians] = PowerLawFit(MedProfiles,T,'Full');
-[EkmanMedians]  = EkmanFit(MedProfiles,T);
-
-% plot(MedProfiles(:,16:20),flip(T.Heights))
-% i = 20;
-
-% x = 0:200;a = EkmanMedians.K(i);b = EkmanMedians.G(i);u = sqrt((b .* (1 - exp(-sqrt((2*7.292e-5*sind(23))./(2*a)).*x) .* cos(sqrt((2*7.292e-5*sind(23))./(2*a)).*x))).^2+(b .* exp(-sqrt((2*7.292e-5*sind(23))./(2*a)).*x) .* sin(sqrt((2*7.292e-5*sind(23))./(2*a)).*x)).^2);
-
-tit = [60 30 20 15 10 5];
-
-% figure
-i = 6;
-
-h(i) = subplot(2,3,i);
-taxis = duration(minutes(linspace(0,1439,size(MedProfiles,2))),'Format','hh:mm');
-plot(taxis,EkmanMedians.NRMSE,'LineWidth',0.75)
-hold on
-plot(taxis,PLFullMedians.NRMSE,'LineWidth',0.75)
-xlim([taxis(1) taxis(end)])
-ylim([0 0.09])
-title(sprintf('%2.0f - Minute',tit(i)))
-
-if i == 1
-    set(h(i), 'Position', [0.05 0.52 1/3.3 0.45])
-    ylabel('NRMSE')
-elseif i == 2
-    set(h(i), 'Position', [0.06+1/3.3 0.52 1/3.3 0.45])
-elseif i == 3
-    set(h(i), 'Position', [0.07+2/3.3 0.52 1/3.3 0.45])
-elseif i == 4
-    set(h(i), 'Position', [0.05 0.04 1/3.3 0.45])
-    ylabel('NRMSE')
-elseif i == 5
-    set(h(i), 'Position', [0.06+1/3.3 0.04 1/3.3 0.45])
-else
-    set(h(i), 'Position', [0.07+2/3.3 0.04 1/3.3 0.45])
-end
-
-if i == 2 || i == 3 || i == 5 || i == 6
-    set(gca,'YTickLabel',[]);
-end
-
-if i == 1 || i == 2 || i == 3
-    set(gca,'XTickLabel',[]);
-end
-
-if i == 1
-    legend('Ekman','Power Law')
-end
-
-
-% plot(MedProfiles(:,i),flip(T.Heights))
-% hold on
-% plot(u,x)
-
-%% median profiles - full day
-
-rng(T.Seed);
-
-[Y,M,~,H,MN,S] = datevec(D.Time);
-
-for i = 1:24
-
-h(i) = subplot(4,6,i);
-
-TOD = i-1;
-
-ind = 1:size(D.Shear,2);
-ind = ind(H == TOD);
-
-MedianU = median(D.Shear(:,ind)./D.Shear(end,ind),2);                           % Calculate median hourly profiles
-STDU = std(D.Shear(:,ind)./D.Shear(end,ind),[],2);                              % Calculate standard deviation of profiles
-indplot = datasample(ind,10);                                                   % Select 10 random profiles
-
-% figure;
-    hold on
-    plot(D.Shear(:,indplot)./D.Shear(end,indplot), flip(T.Heights), 'LineWidth', 1);
-    shadedErrorBar(MedianU, flip(T.Heights), STDU, 'lineProps',{'-', ...
-        'Color', 'k', 'LineWidth', 2.5, 'MarkerSize', 2}, 'vertical', 0);
-        yline(T.Hub,'k-','LineWidth',1.75)
-        yline(T.Hub+T.R,'k--','LineWidth',0.75)
-        yline(T.Hub-T.R,'k--','LineWidth',0.75)
-        xlim([0.3,2])
-        ylim([40,T.Heights(end)])
-        titstr = sprintf('%2.0f:00',TOD);
-        text(0.5,180,titstr,'HorizontalAlignment','center','FontSize',12)
-
-    set(gca,'ytick',[])
-    if i == 1 || i == 7 || i == 13 || i ==19
-        ylabel('z (m)')
-    end
-    if i <= 18
-        set(gca,'xticklabel',[])
-    end
-    if i >= 19
-        xlabel('U(z)/U_{43 m}')
-    end
-
-end
-
-for i = 1:24
-
-    ht = 0.23;
-    s  = 0.01;
-    b  = 0.04;
-
-    if i >= 1 && i <= 6 
-        set(h(i), 'Position', [0.03+(i-1)/6.2 s*4+3*ht+b 1/6.35 ht])
-    elseif i >= 7 && i <= 12
-        set(h(i), 'Position', [0.03+(i-7)/6.2 s*3+2*ht+b 1/6.35 ht])
-    elseif i >= 13 && i <= 18
-        set(h(i), 'Position', [0.03+(i-13)/6.2 s*2+ht+b 1/6.35 ht])
-    elseif i >= 19
-        set(h(i), 'Position', [0.03+(i-19)/6.2 s+b 1/6.35 ht])
-    end
-
-end
-
-%% median profiles - single hour
-
-rng(T.Seed);
-
-[Y,M,~,H,MN,S] = datevec(D.Time);
-
-TOD = 17;
-
-ind = 1:size(D.Shear,2);
-ind = ind(H == TOD);
-
-MedianU = median(D.Shear(:,ind)./D.Shear(end,ind),2);                           % Calculate median hourly profiles
-STDU = std(D.Shear(:,ind)./D.Shear(end,ind),[],2);                              % Calculate standard deviation of profiles
-indplot = datasample(ind,10);                                                   % Select 10 random profiles
-
-figure;
-    hold on
-    plot(D.Shear(:,indplot)./D.Shear(end,indplot), flip(T.Heights), 'LineWidth', 1);
-    shadedErrorBar(MedianU, flip(T.Heights), STDU, 'lineProps',{'-', ...
-        'Color', 'k', 'LineWidth', 2.5, 'MarkerSize', 2}, 'vertical', 0);
-        yline(T.Hub,'k-','LineWidth',1.75)
-        yline(T.Hub+T.R,'k--','LineWidth',0.75)
-        yline(T.Hub-T.R,'k--','LineWidth',0.75)
-        xlim([0.3,2])
-        ylim([40,T.Heights(end)])
-        titstr = sprintf('Mean Speed Shear at %2.0f:00 Hours',TOD);
-        title(titstr)
-        ylabel('z (m)')
-        xlabel('U(z)/U_{43 m}')
 
 %% Ep v. Alpha Full 
 

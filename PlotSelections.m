@@ -1526,6 +1526,165 @@ if P.FitErrorTOD == 1
 
 end
 
+if P.ShearProfMedians == 1
+
+    rng(T.Seed);
+    
+    [~,~,~,H,~,~] = datevec(D.Time);
+    
+    figure;
+    hold on
+    
+    for i = 1:24
+    
+        h(i) = subplot(4,6,i);
+        
+        TOD = i-1;
+        
+        ind = 1:size(D.Shear,2);
+        ind = ind(H == TOD);
+        
+        MedianU = median(D.Shear(:,ind)./D.Shear(end,ind),2);                           % Calculate median hourly profiles
+        STDU = std(D.Shear(:,ind)./D.Shear(end,ind),[],2);                              % Calculate standard deviation of profiles
+        indplot = datasample(ind,10);                                                   % Select 10 random profiles
+        
+            shadedErrorBar(MedianU, flip(T.Heights), STDU, 'lineProps',{'-', ...
+                'Color', 'k', 'LineWidth', 2.5, 'MarkerSize', 2}, 'vertical', 0);
+            plot(D.Shear(:,indplot)./D.Shear(end,indplot), flip(T.Heights), 'LineWidth', 1);
+                yline(T.Hub,'k-','LineWidth',1.75)
+                yline(T.Hub+T.R,'k--','LineWidth',0.75)
+                yline(T.Hub-T.R,'k--','LineWidth',0.75)
+                xlim([0.3,2])
+                ylim([40,T.Heights(end)])
+                titstr = sprintf('%2.0f:00',TOD);
+                text(0.5,180,titstr,'HorizontalAlignment','center','FontSize',12)
+                box on
+        
+            if i == 1 || i == 7 || i == 13 || i ==19
+                ylabel('z (m)')
+            end
+
+            if i ~= 1 && i ~= 7 && i ~= 13 && i ~=19
+                set(gca,'yticklabel',[])
+            end
+
+            if i <= 18
+                set(gca,'xticklabel',[])
+            end
+
+            if i >= 19
+                xlabel('U(z)/U_{43 m}')
+            end
+    
+    end
+    
+    for i = 1:24
+    
+        ht = 0.23;
+        s  = 0.01;
+        b  = 0.04;
+    
+        if i >= 1 && i <= 6 
+            set(h(i), 'Position', [0.03+(i-1)/6.2 s*4+3*ht+b 1/6.35 ht])
+        elseif i >= 7 && i <= 12
+            set(h(i), 'Position', [0.03+(i-7)/6.2 s*3+2*ht+b 1/6.35 ht])
+        elseif i >= 13 && i <= 18
+            set(h(i), 'Position', [0.03+(i-13)/6.2 s*2+ht+b 1/6.35 ht])
+        elseif i >= 19
+            set(h(i), 'Position', [0.03+(i-19)/6.2 s+b 1/6.35 ht])
+        end
+    
+    end
+
+end
+
+if P.ShearMedError == 1
+
+    [~,~,~,H,MN,~] = datevec(D.Time);
+    
+    h = 0:23;
+    
+    M.A6 = [0   4; 5   9; 10 14; 15 19; 20 24; 25 29; 30 34; 35 39; 40 44;
+            45 49; 50 54; 55 59];
+    
+    M.A5 = [0   9; 10 19; 20 29; 30 39; 40 49; 50 59];
+    
+    M.A4 = [0  14; 15 29; 30 44; 45 59];
+    
+    M.A3 = [0  19; 20 39; 40 59];
+    
+    M.A2 = [0  29; 30 59];
+    
+    M.A1 = [0  59];
+    
+    tit  = [60 30 20 15 10 5];
+    
+    figure;
+    hold on
+    
+    for j = 1:6
+ 
+        clear m index taxis MedProfiles PLFullMedians EkmanMedians vector
+        m           = M.(sprintf('A%1.0f',j));
+        MedProfiles = zeros(12,size(m,1));
+        index       = zeros(size(m,1),size(D.Shear,2));
+    
+        i = 1;
+        
+        for hour = 1:length(h)
+            for minute = 1:size(m,1)
+        
+                index(i,:) = (H == h(hour) & MN >= m(minute,1) & MN <= m(minute,2));
+        
+                vector = index(i,:) .* D.Shear;
+                vector = vector(:,any(vector));
+        
+                MedProfiles(:,i) = median(vector ,2);
+                i = i+1;
+            end
+        end
+        
+        [PLFullMedians] = PowerLawFit(MedProfiles,T,'Full');
+        [EkmanMedians]  = EkmanFit(MedProfiles,T);
+        
+        SB(j) = subplot(2,3,j);
+            hold on
+            taxis = duration(minutes(linspace(0,1439,size(MedProfiles,2))),'Format','hh:mm');
+            plot(taxis,EkmanMedians.NRMSE,'LineWidth',0.75)
+            plot(taxis,PLFullMedians.NRMSE,'LineWidth',0.75)
+            xlim([taxis(1) taxis(end)])
+            ylim([0 0.09])
+            title(sprintf('%2.0f - Minute',tit(j)))
+    
+            if j == 2 || j == 3 || j == 5 || j == 6
+                set(gca,'YTickLabel',[]);
+            end
+            
+            if j == 1 || j == 2 || j == 3
+                set(gca,'XTickLabel',[]);
+            end
+    
+            if j == 1
+                set(SB(j), 'Position', [0.05 0.52 1/3.3 0.45])
+                ylabel('NRMSE')
+                legend('Ekman','Power Law')
+            elseif j == 2
+                set(SB(j), 'Position', [0.06+1/3.3 0.52 1/3.3 0.45])
+            elseif j == 3
+                set(SB(j), 'Position', [0.07+2/3.3 0.52 1/3.3 0.45])
+            elseif j == 4
+                set(SB(j), 'Position', [0.05 0.04 1/3.3 0.45])
+                ylabel('NRMSE')
+            elseif j == 5
+                set(SB(j), 'Position', [0.06+1/3.3 0.04 1/3.3 0.45])
+            else
+                set(SB(j), 'Position', [0.07+2/3.3 0.04 1/3.3 0.45])
+            end
+
+    end
+
+end
+
 % if P.PLFullRProb == 1
 % 
 %     figure;                                                                 % Inflection profile fit
