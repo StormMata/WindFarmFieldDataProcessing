@@ -33,10 +33,10 @@ clearvars -except data Ekman PLFull PLInflec WndFamMap
 %close all
 clc
 
-%% Section 1 - Physical constants and global variables
+%% 1 - Physical constants and global variables
 
 % Windfarm
-    T.TOI      = [59 62 58];                                                            % Turbine of interest           [-]
+    T.TOI      = 62; %[59 62 58];                                                            % Turbine of interest           [-]
     T.Lat      = 23;                                                            % Latitude of wind farm         [deg]
 
 % LiDAR
@@ -54,8 +54,8 @@ clc
 
 % Reference curve
     T.RefWind  = linspace(3, 20, 18);                                           % Reference x axis              [m/s]
-    T.RefCurve = [33, 146, 342, 621, 1008, 1501, 1909, 2076, 2099,...           % Reference power curve         [kW]
-                   2100, 2100, 2100, 2100, 2100, 2100, 2100, 2100, 2100];
+    T.RefCurve = [  33,  146,  342,  621, 1008, 1501, 1909, 2076, 2099,...      % Reference power curve         [kW]
+                  2100, 2100, 2100, 2100, 2100, 2100, 2100, 2100, 2100];
 
 % Data binning parameters
     T.HubRow   = find(flip(T.Heights)==104);                                    % Find row with hub-height measurements (104m)
@@ -64,16 +64,16 @@ clc
 % Random seed for sampling
     T.Seed     = 4096;                                                          
 
-%% Section 2 - Load Data
+%% 2 - Load Data
 
-if exist('data','var') == 0
-    addpath(['/Users/stormmata/Library/Mobile Documents/com~apple~' ...
-        'CloudDocs/Courses/Thesis/Conditional Averages/' ...
-        'WindFarmFieldDataProcessing']);
-    [data] = LoadFullData();
-end
+    if exist('data','var') == 0
+        addpath(['/Users/stormmata/Library/Mobile Documents/com~apple~' ...
+            'CloudDocs/Courses/Research/Conditional Averages/' ...
+            'WindFarmFieldDataProcessing']);
+        [data] = LoadFullData();
+    end
 
-%% Section 3 - Construct Initial Filter
+%% 3 - Construct Initial Filter
 
 % LiDAR conditions
     C.LiAv      = 1;                                                            % Lidar.Available               [0-1]
@@ -91,41 +91,41 @@ end
     C.E         = 45;                                                           % Max eastward inflow angle     [deg]
     C.W         = 330;                                                          % Max westward inflow angle     [deg]
 
-%% Section 4 - Extract data and apply initial filter
+%% 4 - Extract data and apply initial filter
 
-    [D,Indices] = ExtractDataM(C,T,data);                                  % Performs initial filtering
+    [D,Indices] = ExtractDataM(C,T,data);                                       % Performs initial filtering
 
-%% Section 5 - Find adjusted wind angle
+%% 5 - Find adjusted wind angle
 
     [NormalWind] = NormalInflow(D);                                             % Find cosine projection of freestream wind [m/s]
 
-%% Section 6 - Compute Area Average of Incident Wind
+%% 6 - Compute Area Average of Incident Wind
 
     [AAWind,AvgComp] = AreaAveragedVelocity(T,D.Shear,NormalWind);              % Area-averaged wind speed      [m/s]
 
-%% Section 7 - Fit Power Law to Shear
+%% 7 - Fit Power Law to Shear
 
     [PLFull]   = PowerLawFit(D.Shear,T,'Full');                                 % Fit power law to shear profiles
 
     [PLInflec] = PowerLawFit(D.Shear,T,'Inflec');                               % Fit power law to shear profiles up to inflection point
 
-%% Section 8 - Fit Power Law to Shear
+%% 8 - Fit Power Law to Shear
 
     [Ekman] = EkmanFit(D.Shear,T);                                              % Fit power law to shear profiles
 
-%% Section 9 - Conditional Averages and Stats
+%% 9 - Conditional Averages and Stats
 
     [WindBins,Mean,Num,Dist,STD,Sig] = CondAvgs(T,D,AvgComp);                   % Calculate descriptive and inferential stats for data
 
-%% Section 10 - Time Series of Power Error
+%% 10 - Time Series of Power Error
 
     [Ep] = ErrorTimeSeries(D,WindBins,Mean,T);                                  % Calculate and plot error time series for data
 
-%% Section 11 - Direction Shear and Probability Plot
+%% 11 - Direction Shear and Probability Plot
 
     [PDFs] = ShearCharacterization(D,T,PLFull,PLInflec,Ekman);                  % Calculate and plot PDF for direction and speed shear
 
-%% Section 12 - Alpha/Beta Relationship
+%% 12 - Alpha/Beta Relationship
 
     N.SS = [-0.1 0.8];                                                          % Speed shear range [low high]
     N.DS = [-0.1 0.6];                                                          % Direction shear range [low high]
@@ -133,7 +133,18 @@ end
 
     [AlphaBeta,AB] = AlphaBetaRel(D,PLFull,PDFs,WindBins,T,N);                  % Calculate and plot the relationship between shear and power
 
-%% Section 13 - Km/Beta Relationship
+%% 13 - Alpha/Beta U Relationship
+
+    N.SS = [-0.1 0.8];                                                          % Speed shear range [low high]
+    N.DS = [-0.1 0.6];                                                          % Direction shear range [low high]
+    N.s  = 0.1;                                                                 % Increment size
+
+    [AlphaBetaU,~] = AlphaBetaURel(AAWind,D,PLFull,PDFs,WindBins,T,N);  
+
+%     [AAWind,AvgComp] = AreaAveragedVelocity(T,NormalWind,NormalWind);              % Area-averaged wind speed      [m/s]
+
+%     [AlphaBetaU,~] = AlphaBetaURel(AAWind,NormalWind,PLFull,PDFs,WindBins,T,N);     
+%% 14 - Km/Beta Relationship
 
     N.Km = [0 1];                                                               % Speed shear range [low high]
     N.DS = [-0.1 0.6];                                                          % Direction shear range [low high]
@@ -141,11 +152,11 @@ end
 
     [KmBeta,KB] = KmBetaRel(D,PLFull,PDFs,WindBins,T,N);                        % Calculate and plot the relationship between shear and power
 
-%% Section 13 - Wind Farm Map
+%% 15 - Wind Farm Map
 
     [WndFamMap] = WndFamMap();
 
-%% Plot Selections
+%% 16 - Plot Selections
 
 % --- Normalized Wind Speed -----------------------------------------------
 P.ShearProfMedians  = 0;    % Median hourly speed shear normalized by U(43)
@@ -167,8 +178,9 @@ P.WindRoseFull      = 0;    % Full LiDAR wind data
 P.WindRoseAnalysis  = 0;    % Only filtered LiDAR data
 
 % --- Time ----------------------------------------------------------------
-P.WdSpHH            = 0;    % Hub height wind speed
-P.TI                = 0;    % Turbulence intensity
+P.WdSpHH            = 0;    % Unfiltered Hub height wind speed
+P.TI                = 0;    % Unfiltered Turbulence intensity
+P.UnFilPow          = 0;    % Unfiltered Power
 
 % --- Time of Day ---------------------------------------------------------
 P.EpTODHisto        = 0;    % Day and night hourly power error histograms
@@ -183,7 +195,7 @@ P.EkTODMED          = 0;    % Ekman parameter evolution, 10-min MEDIANS
 P.InflecTODHisto    = 0;    % Inflection height hourly histograms
 P.InflecTOD         = 0;
 P.FitErrorTOD       = 0;
-P.ShearMedError     = 0;    % NRMSE of Ekman and PL by time of day
+P.ShearMedError     = 1;    % NRMSE of Ekman and PL by time of day
 
 % --- Counts --------------------------------------------------------------
 P.AAPD              = 0;    % Vertical hist of power by wind speed bins, all average
@@ -191,13 +203,15 @@ P.GPD               = 0;    % Vertical hist of power by wind speed bins, AA > Hu
 P.LPD               = 0;    % Vertical hist of power by wind speed bins, AA < Hub
 
 % --- Wind Speed Bins -----------------------------------------------------
-P.HistoPowerAA      = 1;    % Average power with histogram overlaid, all average
+P.HistoPowerAA      = 0;    % Average power with histogram overlaid, all average
 P.HistoPowerAALG    = 0;    % Average power with histogram overlaid, all average, AA < Hub, AA > Hub
 
 % --- Speed Shear Alpha ---------------------------------------------------
 P.AlphaBetaFull     = 0;    % Full color direction shear heatmap
+P.AlphaBetaUFull    = 0;    % Full color direction shear heatmap
 P.AlphaBetaMono     = 0;    % Monochromatic color direction shear heatmap
 P.AlphaBetaLH       = 0;    % Two-color direction shear heatmap
+P.AlphaBetaULH      = 0;    % Two-color direction shear heatmap
 P.SSFull            = 0;    % Probability of occurence, Full profile fit
 P.SSInflec          = 0;    % Probability of occurence, Partial profile fit
 
@@ -211,198 +225,4 @@ P.DSprob            = 0;    % Probability of occurence
 P.EkmanProb         = 0;    % Probability of occurence   
 
 PlotSelections(P,data,Dist,D,T,WindBins,Mean,STD,Num,AB,AlphaBeta,KB,KmBeta,PDFs,PLFull,PLInflec,Ekman,Ep,WndFamMap)
-
-%% Ep v. Alpha Full 
-
-R = range(PLFull.alpha);
-Bins = 40;
-Rstep = R/Bins;
-xaxis = linspace(min(PLFull.alpha),max(PLFull.alpha),Bins);
-    
-    for i = 1:length(xaxis)
-
-        Indices = (PLFull.alpha <= min(PLFull.alpha)+(i*Rstep));
-    
-        Ep.EpvALPHA(i,:) = Indices .* Ep.abs;
-
-    end
-    
-    for i = 1:size(Ep.EpvALPHA,1)
-    
-        Ep.EpvALPHAmean(i) = mean(nonzeros(Ep.EpvALPHA(i,:)));
-    
-    end
-
-    figure
-        plot(xaxis,Ep.EpvALPHAmean,'Color','k')
-            ylabel('\epsilon_P (kW)')
-            xlabel('\alpha (-)')
-            title('\epsilon_P vs. Power Law Alpha (Full Profile)')
-
-%% Ep v. Alpha Partial
-
-R = range(PLInflec.alpha);
-Bins = 40;
-Rstep = R/Bins;
-xaxis = linspace(min(PLInflec.alpha),max(PLInflec.alpha),Bins);
-    
-    for i = 1:length(xaxis)
-
-        Indices = (PLInflec.alpha <= min(PLInflec.alpha)+(i*Rstep));
-    
-        Ep.EpvALPHAinflec(i,:) = Indices .* Ep.abs;
-
-    end
-    
-    for i = 1:size(Ep.EpvALPHAinflec,1)
-    
-        Ep.EpvALPHAinflecmean(i) = mean(nonzeros(Ep.EpvALPHAinflec(i,:)));
-    
-    end
-
-    figure
-        plot(xaxis,Ep.EpvALPHAinflecmean,'Color','k')
-            ylabel('\epsilon_P (kW)')
-            xlabel('\alpha (-)')
-            title('\epsilon_P vs. Power Law Alpha (Partial Profile)')
-
-%%
-
-angavg  = mean(reshape(data.BHR62.Pitch,10,[]));
-wndbin  = data.Lidar.H104m.WndSpd(5:10:end);
-
-angavg(isnan(angavg)) =  0;
-wndbin(isnan(angavg)) =  0;
-
-angavg(isnan(wndbin)) =  0;
-wndbin(isnan(wndbin)) =  0;
-
-bins = 0:0.5:floor(max(wndbin));
-
-for i = 1:length(bins)
-    MAD(i)  = mad((nonzeros((wndbin > bins(i) & wndbin <= (bins(i)+0.5)) .* angavg)));
-end
-%     MADhigh = angavg+4.5*MAD;
-%     MADlow  = angavg-4.5*MAD;
-
-scatter(wndbin,angavg)
-scatter([D.Shear(7,5:10:end) 0 0 0 0 0 0 0],mean(reshape([D.Pitch zeros(1,67)],10,[])))
-figure
-
-    hold on
-    scatter(wndbin(angavg>MADhigh),angavg(angavg>MADhigh),'red',Marker='.')
-    scatter(wndbin(angavg<MADlow),angavg(angavg<MADlow),'red',Marker='.')
-    scatter(wndbin(angavg<=MADhigh & angavg>=MADlow),angavg(angavg<=MADhigh & angavg>=MADlow),'blue',Marker='.')
-
-
-            
-
-%% ------ Item 1 ------
-
-% for i = 1:length(Power)
-% 
-% end
-% 
-% plot(Power)
-% 
-% dateaxis = datetime(Time,'ConvertFrom','datenum');
-% scatter(dateaxis,Power,'.')
-
-[ShearIndices,ShearInt] = FindMinShear(T,NormalWind);
-
-figure
-histogram(ShearInt,100)
-hold on
-xline(quantile(ShearInt,0.25),'Color','r','LineWidth',1)
-xline(quantile(ShearInt,0.5),'Color','r','LineWidth',1)
-xline(quantile(ShearInt,0.75),'Color','r','LineWidth',1)
-title('Distribution of Shear Magnitude')
-xlabel('Integral of Shear Profile Over Rotor Area (m^3/s)')
-ylabel('Counts')
-hold off
-
-FirstQuart = ShearIndices(1:floor(0.25*length(ShearIndices)));
-
-PowerFQ = Power(FirstQuart);
-
-AAWindFQ = AAWind(FirstQuart);
-
-FirstQuartShear = Shear(:,FirstQuart);
-
-AvgCompFQ.Greater = AAWindFQ > FirstQuartShear(T.HubRow,:);                               % Area average greater than hub height
-AvgCompFQ.Less    = AAWindFQ < FirstQuartShear(T.HubRow,:);                               % Area average less than hub height
-
-[WindBinsFQ,MeanFQ,NumFQ,DistFQ,STDFQ,SigFQ] = CondAvgs(T,FirstQuartShear,PowerFQ,AvgCompFQ);
-
-figure
-plot(WindBins,Mean.All,'LineWidth',1.5)
-hold on
-plot(WindBinsFQ,MeanFQ.All,'LineWidth',1.5)
-title('Effect of Shear on Power Output')
-xlabel('Wind Speed (m/s)')
-ylabel('Power (kW)')
-legend('All Average','All Average with First Quartile Shear Magnitudes')
-grid on
-hold off
-
-[VeerIndices] = FindMinVeer(T,Diff);
-
-
-
-
-
-
-
-
-
-
-
-
-
-%% Section 10 - Plot
-
-BetzWind  = T.CutIn:0.5:9;                                                      % Reference Betz limit plot
-BetzPower = (0.593 * 0.5 * 1.162 * pi * T.R^2 .* BetzWind.^3)/1e3;              % Reference Betz limit plot
-
-xi = linspace(min(T.RefWind), max(T.RefWind), 100);                             % Evenly-Spaced Interpolation Vector
-yi = interp1(T.RefWind, T.RefCurve, xi, 'spline', 'extrap');
-
-figure;
-%    plot(BetzWind,BetzPower)%,'color','k','LineStyle',':','Marker','*')
-    hold on
-  plot(xi,yi,'LineWidth',0.85,'Color','k','LineStyle',':')
-   plot(WindBins,Mean.All,'LineWidth',1.5,'Color','#0072BD','LineStyle','-')
-   plot(WindBins,Mean.Larger,'LineWidth',1.5,'Color','#D95319','LineStyle','--')
-   plot(WindBins,Mean.Less,'LineWidth',1.5,'Color','#A2142F','LineStyle','-.')
-%      errorbar(WindBins, AllMean, AllSTD, '-')
-%      errorbar(WindBins, LargerMean, LargerSTD, '-')
-%      errorbar(WindBins, LessMean, LessSTD, '-')
-     ylabel('Power (kW)')
-    yyaxis right
-    ylabel('Counts')
-    bar(WindBins,Num.All,'FaceColor','k')
-    bar(WindBins,Num.Less,'FaceColor','b')
-    bar(WindBins,Num.Larger,'FaceColor','r')
-    alpha(0.05)
-    str1 = sprintf('All Average, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.All))),'\d{3}(?=\d)', '$0,')));
-    str2 = sprintf('AA > Hub, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.Larger))),'\d{3}(?=\d)', '$0,')));
-    str3 = sprintf('AA < Hub, N = %s',fliplr(regexprep(fliplr(num2str(sum(Num.Less))),'\d{3}(?=\d)', '$0,')));
-    legend('Reference Curve', str1, str2, str3,'All Data','AA < Hub','AA > Hub')
-%     legend(str1, str2, str3,'All Data','AA < Hub','AA > Hub')
-    xlabel('u(z = z_h) (m/s)')
-    grid on
-    titstr = sprintf('Turbine %2.0f',T.TOI);
-    title(titstr)
-    axprop = gca;
-    axprop.YAxis(1).Color = 'k';
-    axprop.YAxis(2).Color = '#800000';
-    xlim([0 16])
-%    ylim([-25 2500])
-hold off
-% 
-% 
-% bar(AlphaBins,Mean.Alpha)
-% title('Power Output by Power Law Exponent')
-% xlabel('alpha (u = u_{ref} \cdot (z/z_{ref})^\alpha')
-% ylabel('Power (kW)')
 

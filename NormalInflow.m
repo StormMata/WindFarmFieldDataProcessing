@@ -16,4 +16,11 @@ fprintf('\n------------------------\n')
 
 fprintf('\n\nComplete.\n\n')
 
+% figure;
+%     timeaxis = datetime(D.Time,'ConvertFrom','datenum');
+%     plot(timeaxis,NormalWind(7,:),'linestyle','none','marker','.','MarkerSize',4,'Color','k')
+%     yline(0,'LineWidth',0.5)
+%         ylabel('Relative Wind Bearing (deg)')
+%         xlim([timeaxis(1) timeaxis(end)])
+
 end

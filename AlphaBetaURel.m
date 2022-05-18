@@ -1,9 +1,11 @@
-function [AlphaBeta,AB] = AlphaBetaRel(D,PLFull,PDFs,WindBins,T,N)
+function [AlphaBeta,AB] = AlphaBetaURel(U,D,PLFull,PDFs,WindBins,T,N)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
+% D.Shear = NW;
+
 fprintf('\n------------------------')
-fprintf('\n----Alpha Beta Calcs----')
+fprintf('\n---Alpha Beta U Calcs---')
 fprintf('\n------------------------\n')
 
 AB.DSrange = N.DS(2):-N.s:N.DS(1);
@@ -12,11 +14,13 @@ AB.SSrange = N.SS(1):N.s:N.SS(2);
 [~,~,AlphaBeta.BinIndex] = histcounts(D.Shear(T.HubRow,:),WindBins);
 AlphaBeta.BinIndex = AlphaBeta.BinIndex+1;
 
-PowerBinAvg = zeros(1,length(AlphaBeta.BinIndex));
+UBinAvg = zeros(1,length(AlphaBeta.BinIndex));
+
+Velocity = (U.^3)./(D.Shear(7,:).^3);
 
 for i = 1:length(AlphaBeta.BinIndex)
 
-    PowerBinAvg(i) = mean(nonzeros((AlphaBeta.BinIndex == (AlphaBeta.BinIndex(i))) .* D.Power));
+    UBinAvg(i) = mean(nonzeros((AlphaBeta.BinIndex == (AlphaBeta.BinIndex(i))) .* Velocity));
 
 end
 
@@ -24,7 +28,8 @@ for j = 1:length(AB.DSrange)
 
     for i = 1:length(AB.SSrange)
 
-        AlphaBeta.Power(j,i)  = mean(nonzeros((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)) .* D.Power ./ PowerBinAvg));
+        AlphaBeta.Power(j,i)  = mean(nonzeros((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)) .* Velocity ./ UBinAvg));
+%         AlphaBeta.Power(j,i)  = mean(nonzeros((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)) .* Velocity));
 
         AlphaBeta.Counts(j,i) = sum((PLFull.alpha >= AB.SSrange(i) & PLFull.alpha < (AB.SSrange(i) + N.s)) .* (PDFs.DSrate >= AB.DSrange(j) & PDFs.DSrate < (AB.DSrange(j) + N.s)));
 
@@ -66,7 +71,7 @@ end
 
 %% Processing
 
-AlphaBeta.Power(AlphaBeta.Counts < 15) = NaN;
+AlphaBeta.Power(AlphaBeta.Counts < 30) = NaN;
 
 AlphaBeta.PowerLH = AlphaBeta.Power;
 

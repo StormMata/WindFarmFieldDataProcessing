@@ -7,7 +7,7 @@ if P.TurbineSchema == 1
 
     % Load chord length
     
-    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Thesis/BEMT/BEMT');
+    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Research/BEMT/Inputs');
     
     [~,~,~,~,c] = LoadGeometry('Airfoil_17.txt');
     
@@ -154,7 +154,8 @@ if P.WindSchema == 1
 
     % Load chord length
     
-    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Thesis/BEMT/BEMT');
+    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Research/BEMT/BEMT');
+    addpath('/Users/stormmata/Library/Mobile Documents/com~apple~CloudDocs/Courses/Research/BEMT/Inputs');
     
     [~,~,~,~,c] = LoadGeometry('Airfoil_17.txt');
     
@@ -222,32 +223,69 @@ if P.WindSchema == 1
     
     % -------------------- Wind Profiles --------------------
     
-        Z = 0:0.5:300;
+        Z = 0:0.5:750;
 
-        k = 0.03;                                                               % Eddy diffusivity
-        g = 4;                                                                  % Geostrophic wind
+        k = 0.001;                                                               % Eddy diffusivity
+        g = 3;                                                                  % Geostrophic wind
 
         EkmanProfile = sqrt((g .* (1 - exp(-sqrt((2*7.292e-5*sind(23))/ ...
             (2*k)).*Z) .* cos(sqrt((2*7.292e-5*sind(23))/(2*k)).*Z))).^2 ...
             +(g .* exp(-sqrt((2*7.292e-5*sind(23))/(2*k)).*Z) .* ...
             sin(sqrt((2*7.292e-5*sind(23))/(2*k)).*Z)).^2);
 
-        PowerLaw = 300*(0.1*(Z./43).^(0.2))-190;
+        PowerLaw = (20*(Z./43).^(0.14))-175;
 
-        EkmanProfile = (EkmanProfile * 10)-190;
+        EkmanProfile = (EkmanProfile * 10)-175;
         
-        plot(PowerLaw,Z,'LineWidth',2)
-        plot(EkmanProfile,Z,'LineWidth',2)
-        xline(-165,'LineStyle','--')
-
+        plot(PowerLaw,0.25*Z,'LineWidth',2)
+        plot(EkmanProfile,3*Z,'LineWidth',2)
+        
         axis equal
-        legend('','','','','','','','','Power Law','Ekman Layer','Location','northwest')
-        ylabel('z (m)')
-        xlabel('x (m)')
-        ylim([0 170])
+        ylim([0 180])
         xlim([-200 -75])
+
+    % -------------------- Direction Shear Arrows --------------------
+
+        mid = 0.5;                                                              % Normalized plot units
+        rise = 0.85;                                                            % Normalized plot units
+        step = (rise-mid)/4;
+
+        annotation('arrow',[0.285 0.320],[mid+4*step mid+4*step-0.04])
+        annotation('arrow',[0.285 0.340],[mid+3*step mid+3*step-0.03])
+        annotation('arrow',[0.285 0.355],[mid+2*step mid+2*step-0.02])
+        annotation('arrow',[0.285 0.360],[mid+step mid+step-0.01])
+        
+        annotation('arrow',[0.285 0.37],[mid mid])
+
+        annotation('arrow',[0.285 0.320],[mid-4*step mid-4*step+0.04])
+        annotation('arrow',[0.285 0.340],[mid-3*step mid-3*step+0.03])
+        annotation('arrow',[0.285 0.355],[mid-2*step mid-2*step+0.02])
+        annotation('arrow',[0.285 0.360],[mid-step mid-step+0.01])
+
+        fts = 13;
+
+        text(-176,155,'Northwesterly','HorizontalAlignment','right','FontSize',fts)
+        text(-176,82,'Westerly','HorizontalAlignment','right','FontSize',fts)
+        text(-176,9,'Southwesterly','HorizontalAlignment','right','FontSize',fts)
+
+        text(-178,174,'(a)','HorizontalAlignment','right','FontSize',fts)
+        text(-150,174,'(b)','HorizontalAlignment','right','FontSize',fts)
+
+        yline(T.Hub+T.R+2,'linestyle','--','LineWidth',0.5)
+        yline(T.Hub-T.R-2,'linestyle','--','LineWidth',0.5)
+
+        xline(linex)
+
+        linex = -175;
+%         xline(linex,'LineWidth',1)
+
+        L=legend('','','','','','','','','Power Law','Ekman Layer','Location','northwest')
+        L.FontSize = 10;
+        ylabel('z (m)')
+        xlabel('u (m/s)')
         set(gca,'XTickLabel',[]);
         set(gca,'XTick',[]);
+        box on
 
 end
 
@@ -539,19 +577,55 @@ end
 if P.WdSpHH == 1
 
     figure;
-        plot(datetime(data.DateTime,'ConvertFrom','datenum'),data.Lidar.H104m.WndSpd,'linestyle','none','marker','.')
+        timeaxis = datetime(data.DateTime,'ConvertFrom','datenum');
+        plot(timeaxis,data.Lidar.H104m.WndSpd,'linestyle','none','marker','.','MarkerSize',4,'Color','k')
+            ylabel('Wind Speed at Hub Height (m/s)')
+            xlim([timeaxis(1) timeaxis(find(~isnan(data.Lidar.H104m.WndSpd),1,'last'))])
+%             xlim([timeaxis(1) timeaxis(end)])
             title('LiDAR Hub Height Wind Speed Measurements')
-            ylabel('WindSpeed (z = z_h) (m/s)')
+
+end
+
+if P.UnFilPow == 1
+
+    figure;
+    hold on
+
+    xi = linspace(min(T.RefWind), max(T.RefWind), 100);                             % Evenly-Spaced Interpolation Vector
+    yi = interp1(T.RefWind, T.RefCurve, xi, 'spline', 'extrap');
+
+    WindBinz = 0:0.5:25;
+
+    for i = 1:length(WindBinz)-1
+
+        powernums = data.BHR58.Power .* (data.Lidar.H104m.WndSpd >= WindBinz(i) & data.Lidar.H104m.WndSpd < WindBinz(i+1));
+
+        windnums  = data.Lidar.H104m.WndSpd .* (data.Lidar.H104m.WndSpd>= WindBinz(i) & data.Lidar.H104m.WndSpd < WindBinz(i+1));
+
+        plot(windnums,powernums,'linestyle','none','marker','.','MarkerSize',4,'Color','k')
+
+    end
+
+    plot([0 3 xi],[0 0 yi],'LineWidth',4,'Color','#A2142F')
+
+    ylabel('Power (kW)')
+    xlabel('Mean Wind Speed (m/s)')
+    ylim([0 2170])
+    xlim([0 14])
+    box on
 
 end
 
 if P.TI == 1
 
     figure;
-        plot(datetime(data.DateTime,'ConvertFrom','datenum'),data.BHR62.TurbulenceIntensity,'linestyle','none','marker','.')
-            title('Turbulence Intensity at Hub Height')
-            ylabel('I (%)')
+        timeaxis = datetime(data.DateTime,'ConvertFrom','datenum');
+        plot(timeaxis,data.BHR62.TurbulenceIntensity,'linestyle','none','marker','.','MarkerSize',4,'Color','k')
+            ylabel('Turbulence Intensity (%)')
             ylim([0 100])
+            xlim([timeaxis(1) timeaxis(find(~isnan(data.Lidar.H104m.WndSpd),1,'last'))])
+%             xlim([timeaxis(1) timeaxis(end)])
+            title('Turbulence Intensity at Hub Height')
 
 end
 
@@ -566,16 +640,20 @@ if P.AAPD == 1
         [counts,edges,~] = histcounts(nonzeros(Dist.All(i,:)),'BinWidth',BinWidth);
     
         barh(edges(2:end),counts)
+
+        str = sprintf('[%2.1f, %2.1f )',WindBins(i),WindBins(i+1));
+
+        title(str)
     
         str = sprintf('N = %3.0f',length(nonzeros(Dist.All(i,:))));
     
             if i < 16
-                text(137.5,2100,str,'HorizontalAlignment','center','FontSize',12)
+                text(150,2100,str,'HorizontalAlignment','center','FontSize',12)
             else
-                text(137.5,100,str,'HorizontalAlignment','center','FontSize',12)
+                text(150,100,str,'HorizontalAlignment','center','FontSize',12)
             end
         
-            xlim([0 275])
+            xlim([0 300])
             ylim([0 2200])
             xtickangle(45)
         
@@ -585,7 +663,7 @@ if P.AAPD == 1
         
             if i == 13
                 xlabel('Counts')
-                title('Power Distributions of Bins in Region 2 - All Average')
+%                 title('Power Distributions of Bins in Region 2 - All Average')
             end
         
             if i ~= 7
@@ -611,16 +689,20 @@ if P.GPD == 1
         [counts,edges,~] = histcounts(nonzeros(Dist.Larger(i,:)),'BinWidth',BinWidth);
         
         barh(edges(2:end),counts)
+
+        str = sprintf('[%2.1f, %2.1f )',WindBins(i),WindBins(i+1));
+
+        title(str)
         
         str = sprintf('N = %3.0f',length(nonzeros(Dist.Larger(i,:))));
         
             if i < 16
-                text(25,2100,str,'HorizontalAlignment','center','FontSize',12)
+                text(40,2100,str,'HorizontalAlignment','center','FontSize',12)
             else
-                text(25,100,str,'HorizontalAlignment','center','FontSize',12)
+                text(40,100,str,'HorizontalAlignment','center','FontSize',12)
             end
             
-            xlim([0 50])
+            xlim([0 80])
             ylim([0 2200])
             xtickangle(45)
             
@@ -630,7 +712,7 @@ if P.GPD == 1
             
             if i == 13
                 xlabel('Counts')
-                title('Power Distributions of Bins in Region 2 Where Area-Average Velocity is Greater than Hub Height Velocity')
+%                 title('Power Distributions of Bins in Region 2 Where Area-Average Velocity is Greater than Hub Height Velocity')
             end
             
             if i ~= 7
@@ -654,17 +736,22 @@ if P.LPD == 1
         h(i-6) = subplot(1,13,i-6);
         
         [counts,edges,~] = histcounts(nonzeros(Dist.Less(i,:)),'BinWidth',BinWidth);
+        
         barh(edges(2:end),counts)
+
+        str = sprintf('[%2.1f, %2.1f )',WindBins(i),WindBins(i+1));
+
+        title(str)
         
         str = sprintf('N = %3.0f',length(nonzeros(Dist.Less(i,:))));
         
             if i < 16
-                text(112.5,2100,str,'HorizontalAlignment','center','FontSize',12)
+                text(137.5,2100,str,'HorizontalAlignment','center','FontSize',12)
             else
-                text(112.5,100,str,'HorizontalAlignment','center','FontSize',12)
+                text(137.5,100,str,'HorizontalAlignment','center','FontSize',12)
             end
             
-            xlim([0 225])
+            xlim([0 275])
             ylim([0 2200])
             xtickangle(45)
             
@@ -674,7 +761,7 @@ if P.LPD == 1
             
             if i == 13
                 xlabel('Counts')
-                title('Power Distributions of Bins in Region 2 Where Area-Average Velocity is Less than Hub Height Velocity')
+%                 title('Power Distributions of Bins in Region 2 Where Area-Average Velocity is Less than Hub Height Velocity')
             end
             
             if i ~= 7
@@ -801,6 +888,8 @@ if P.HistoPowerAA == 1
         
         plot(WindBins,Mean.All,'LineWidth',1.5,'Color','k','LineStyle','-')
         
+        plot(xi,yi/2100,'LineWidth',0.85,'Color','k','LineStyle','--')           %    reference curve
+
         M = Mean.All;
         S = STD.All;
         
@@ -816,10 +905,10 @@ if P.HistoPowerAA == 1
         xlim([0.5 14])
         ylabel('P/P_{rated}')
         yyaxis right
-        ylabel('Counts')
-        bar(WindBins,Num.All,'FaceColor','k')
+        ylabel('Probability of Occurrence')
+        bar(WindBins,Num.All/sum(Num.All),'FaceColor',[.14 .29 .70])
         
-        alpha(0.05)
+        alpha(0.15)
 
         xlabel('u(z = z_h) (m/s)')
         
@@ -827,7 +916,12 @@ if P.HistoPowerAA == 1
         title(titstr)
         axprop = gca;
         axprop.YAxis(1).Color = 'k';
-        axprop.YAxis(2).Color = '#800000';
+%         axprop.YAxis(2).Color = '#800000';
+        axprop.YAxis(2).Color = [43/255 56/255 143/255];
+
+
+        legend('Median Power','Manufacturer Refernce')
+        box on
         hold off
 
 end
@@ -954,6 +1048,81 @@ if P.AlphaBetaLH == 1
         xlabel('Speed Shear (\alpha)')
         ylabel('Direction Shear (\circ m^{-1})')
         ylabel(colorbar('eastoutside'),'Normalized Power (-)')
+        xlim([AB.xlow AB.xhigh])
+        hold on
+    
+            for i = 1:length(AB.SSrange)                                        % Vertical brid lines
+                xline(AB.SSrange(i)-AB.s/2)
+            end
+        
+            for i = 1:length(AB.DSrange)                                        % Horizontal brid lines
+                yline(AB.DSrange(i)-AB.s/2)
+            end
+    
+        x = [AB.SSrange 0.8];                                                   % Add threshold line
+        y = 2/3*x - 0.1;
+        plot(x,y,'color','r','LineWidth',2)
+    
+        hold off
+
+end
+
+if P.AlphaBetaUFull == 1
+
+    figure;
+        imagesc(AB.SSrange,AB.DSrange,AlphaBetaU.Power);
+        axis xy                                                                 % Flip image
+        colormap([1 1 1; parula(256)])                                          % Bi-tone colomap
+        colorbar
+    
+        xlabel('Speed Shear (\alpha)')
+        ylabel('Direction Shear (\circ m^{-1})')
+        ylabel(colorbar('eastoutside'),'Normalized Area-Averaged Velocity (U^3_{AA}/U_{43 m}^3)')
+        xlim([AB.xlow AB.xhigh])
+%         caxis([0.85 0.99])
+        hold on
+    
+        for i = 1:length(AB.SSrange)                                            % Vertical brid lines
+            xline(AB.SSrange(i)-AB.s/2)
+        end
+    
+        for i = 1:length(AB.DSrange)                                            % Horizontal brid lines
+            yline(AB.DSrange(i)-AB.s/2)
+        end
+    
+        x = [AB.SSrange 0.8];                                                   % Add threshold line
+        y = 2/3*x - 0.1;
+        plot(x,y,'color','r','LineWidth',2)
+    
+        hold off
+
+end
+
+if P.AlphaBetaULH == 1
+
+    low  = min(AlphaBetaU.Power,[],'all');                                       % Find minimum
+    high = max(AlphaBetaU.Power,[],'all');                                       % Find maximum
+    
+    AlphaBetaU.PowerLH(AlphaBetaU.Power<1 & ~isnan(AlphaBetaU.Power)) = low;       % Convert all values >1 to maximum
+    AlphaBetaU.PowerLH(AlphaBetaU.Power>=1) = high;                               % Convert all values <1 to minimum
+    
+        if abs(high-1) > abs(1-low)                                             % Calibrate colormap values
+            AlphaBetaU.PowerLH(end,end) = 1-abs(high-1);
+        else
+            AlphaBetaU.PowerLH(end,end) = 1+abs(low-1);
+        end
+    
+    figure;
+%         h = pcolor(AB.SSrange,AB.DSrange,AlphaBeta.PowerLH);
+        h = imagesc(AB.SSrange,AB.DSrange,AlphaBetaU.PowerLH);
+        axis xy                                                                 % Flip image
+        colormap([0.66 0.66 0.66; .33 .33 .33])                                 % Bi-tone colomap
+        colorbar
+        set(h,'alphadata',~isnan(AlphaBetaU.PowerLH))                            % Set NaNs to white
+    
+        xlabel('Speed Shear (\alpha)')
+        ylabel('Direction Shear (\circ m^{-1})')
+        ylabel(colorbar('eastoutside'),'Normalized Area-Averaged Velocity (U^3_{AA}/U_{43 m}^3)')
         xlim([AB.xlow AB.xhigh])
         hold on
     
@@ -1526,14 +1695,13 @@ if P.FitErrorTOD == 1
 
 end
 
-if P.ShearProfMedians == 1
+if P.ShearSpeedMedians == 1
 
     rng(T.Seed);
     
     [~,~,~,H,~,~] = datevec(D.Time);
     
     figure;
-    hold on
     
     for i = 1:24
     
@@ -1550,6 +1718,7 @@ if P.ShearProfMedians == 1
         
             shadedErrorBar(MedianU, flip(T.Heights), STDU, 'lineProps',{'-', ...
                 'Color', 'k', 'LineWidth', 2.5, 'MarkerSize', 2}, 'vertical', 0);
+            hold on
             plot(D.Shear(:,indplot)./D.Shear(end,indplot), flip(T.Heights), 'LineWidth', 1);
                 yline(T.Hub,'k-','LineWidth',1.75)
                 yline(T.Hub+T.R,'k--','LineWidth',0.75)
@@ -1582,7 +1751,92 @@ if P.ShearProfMedians == 1
     
         ht = 0.23;
         s  = 0.01;
-        b  = 0.04;
+        b  = 0.03;
+    
+        if i >= 1 && i <= 6 
+            set(h(i), 'Position', [0.03+(i-1)/6.2 s*4+3*ht+b 1/6.35 ht])
+        elseif i >= 7 && i <= 12
+            set(h(i), 'Position', [0.03+(i-7)/6.2 s*3+2*ht+b 1/6.35 ht])
+        elseif i >= 13 && i <= 18
+            set(h(i), 'Position', [0.03+(i-13)/6.2 s*2+ht+b 1/6.35 ht])
+        elseif i >= 19
+            set(h(i), 'Position', [0.03+(i-19)/6.2 s+b 1/6.35 ht])
+        end
+    
+    end
+
+end
+
+if P.ShearDirMedians == 1
+
+    rng(T.Seed);
+    
+    [~,~,~,H,~,~] = datevec(D.Time);
+    
+    figure;
+    
+    for i = 1:24
+    
+        h(i) = subplot(4,6,i);
+        
+        TOD = i-1;
+        
+        ind = 1:size(D.Veer,2);
+        ind = ind(H == TOD);
+        
+        indplot = datasample(ind,10);                                                   % Select 10 random profiles
+        
+%         right = median(D.Veer(:,ind) - D.Veer(TxfLH.HubRow,ind),2) + std(D.Veer(:,ind) - D.Veer(T.HubRow,ind),[],2);
+%         left = median(D.Veer(:,ind) - D.Veer(T.HubRow,ind),2) - std(D.Veer(:,ind) - D.Veer(T.HubRow,ind),[],2);
+%         
+%         patch([right' fliplr(left')],[flip(T.Heights) T.Heights],'k','facealpha',0.1,'edgecolor','None')
+
+        shadedErrorBar(median(D.Veer(:,ind) - D.Veer(T.HubRow,ind),2), ...
+            flip(T.Heights), std(D.Veer(:,ind) - D.Veer(T.HubRow,ind),[],2), ...
+            'lineProps',{'-', 'Color', 'k', 'LineWidth', 2.5, ...
+            'MarkerSize', 2}, 'vertical', 0);
+            hold on
+            yline(T.Hub,'k-','LineWidth',1.75)
+            yline(T.Hub+T.R,'k--','LineWidth',0.75)
+            yline(T.Hub-T.R,'k--','LineWidth',0.75)
+            plot(D.Veer(:,indplot) - D.Veer(T.HubRow,indplot), flip(T.Heights), 'LineWidth', 1);
+            xlim([-30,30]); 
+            ylim([T.Heights(1),T.Heights(end)])
+            titstr = sprintf('%2.0f:00',TOD);
+            text(-20,180,titstr,'HorizontalAlignment','center','FontSize',12)
+            box on
+        
+            if i == 1 || i == 7 || i == 13 || i ==19
+                ylabel('z (m)')
+            end
+
+            if i ~= 1 && i ~= 7 && i ~= 13 && i ~=19
+                set(gca,'yticklabel',[])
+            end
+
+            if i <= 18
+                set(gca,'xticklabel',[])
+            end
+
+            if i >= 19
+                xlabel('\gamma(z)/\gamma_{43 m}')
+            end
+
+            if i == 19
+                xticks([-30 -20 -10 0 10 20 30])
+            end
+
+            if i > 19
+                xticks([-20 -10 0 10 20 30])
+            end
+    
+    end
+    
+    for i = 1:24
+    
+        ht = 0.23;
+        s  = 0.01;
+        b  = 0.03;
     
         if i >= 1 && i <= 6 
             set(h(i), 'Position', [0.03+(i-1)/6.2 s*4+3*ht+b 1/6.35 ht])
@@ -1682,6 +1936,17 @@ if P.ShearMedError == 1
             end
 
     end
+
+end
+
+if P.SampleProfileEk == 1
+
+    plot(D.Shear(:,161),flip(T.Heights),'linewidth',2)
+    hold on
+    z = 1:200;
+    full = PLFull.Uref(161) .* (z./43).^PLFull.alpha(161);
+    plot(full,z,'color','r','linewidth',1.5,'linestyle','--')
+    
 
 end
 

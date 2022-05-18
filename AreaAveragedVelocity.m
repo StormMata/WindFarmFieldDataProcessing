@@ -54,7 +54,7 @@ for i = 1:size(NormalWind,2)
     
     % 6. Divide by area of rotor
         
-        AreaMean(i) = AreaInt/(pi*T.R^2);                                   % Return area average wind      [m/s]
+        AreaMean(i) = AreaInt/(pi*(T.R)^2);                                   % Return area average wind      [m/s]
     
         %AreaMean = mean(nonzeros(SPgrid.*RotorFilterOutter.*RotorFilterInner));
 
@@ -71,12 +71,34 @@ AvgComp.Less    = AreaMean < Shear(T.HubRow,:);                             % Ar
 
 %% Optional Plot 
 
-% figure
-% surf(ycoords,zcoords,SPgrid.*RotorFilterOutter.*RotorFilterInner)
-% colorbar
-% title('Shear Profile Over Rotor Area')
-% xlabel('y (m)')
-% ylabel('z (m)')
-% ylabel(colorbar('eastoutside'),'Wind Speed (m/s)')
+% Contour
+
+%     figure;
+% 
+%     Data = SPgrid.*RotorFilterOutter.*RotorFilterInner;
+%     
+%     Data = flipud(Data);
+%     
+%     N = min(nonzeros(Data));
+%     
+%     Data(Data == 0) = NaN;
+%     
+%     contourf(ycoords,zcoords,Data,'LineColor','none')
+%     axis xy
+%     % colobar
+%     xlabel('y (m)')
+%     ylabel('z (m)')
+%     ylabel(colorbar('eastoutside'),'Wind Speed (m/s)')
+%     axis equal
+
+% Surface
+
+%     figure
+%     surf(ycoords,zcoords,SPgrid.*RotorFilterOutter.*RotorFilterInner-N,'EdgeColor','none')
+%     colorbar
+%     title('Shear Profile Over Rotor Area')
+%     xlabel('y (m)')
+%     ylabel('z (m)')
+%     ylabel(colorbar('eastoutside'),'Wind Speed (m/s)')
 
 end

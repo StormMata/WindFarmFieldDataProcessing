@@ -695,21 +695,48 @@ end
 %     datetick('x','mm/yy','keepticks')
 %     ylabel('I (%)')
 
-% figure;
-%     plot([0 2.9999 xi 25 25.0001 30],[0 0 yi 1600 0 0],'LineWidth',1,'Color','k')
-%     hold on
-%     xlabel('Average Wind Speed (m/s)')
-%     ylabel('Power (kW)')
-%     xline(3,'LineStyle','--')
-%     xline(10.5,'LineStyle','--')
-%     xline(T.CutOut,'LineStyle','--')
-%     text(1.5,2350,'I','HorizontalAlignment','center','FontSize',16)
-%     text(6.75,2350,'II','HorizontalAlignment','center','FontSize',16)
-%     text(17.5,2350,'III','HorizontalAlignment','center','FontSize',16)
-%     text(27.5,2350,'IV','HorizontalAlignment','center','FontSize',16)
-%     hold off
-%     ylim([0 2600])
-%     grid on
+figure;
+    plot([0 2.9999 xi 25 25.0001 30],[0 0 yi/2100 1600/2100 0 0],'LineWidth',1.5,'Color','k')
+    hold on
+    xlabel('Average Wind Speed (m/s)')
+    ylabel('Normalized Power')
+    xline(3,'LineStyle','--')
+    xline(10.5,'LineStyle','--')
+    xline(T.CutOut,'LineStyle','--')
+    text(1.5,2350,'I','HorizontalAlignment','center','FontSize',16)
+    text(6.75,2350,'II','HorizontalAlignment','center','FontSize',16)
+    text(17.5,2350,'III','HorizontalAlignment','center','FontSize',16)
+    text(27.5,2350,'IV','HorizontalAlignment','center','FontSize',16)
+    hold off
+    ylim([0 2600])
+    grid on
+    set(gca,'LineWidth',1.5)
+    set(gca,'fontsize',14)
+
+
+figure;
+    plot([0 3 xi 25 25 30],[0 0 yi 2100 0 0]/2100,'LineWidth',1,'Color','k')
+    hold on
+    xlabel('Average Wind Speed (m/s)')
+    ylabel('P/P_{Rated}')
+    xline(3,'LineStyle','--')
+    xline(10.5,'LineStyle','--')
+    xline(T.CutOut,'LineStyle','--')
+    text(1.5,1.1,'I','HorizontalAlignment','center','FontSize',16)
+    text(6.75,1.1,'II','HorizontalAlignment','center','FontSize',16)
+    text(17.5,1.1,'III','HorizontalAlignment','center','FontSize',16)
+    text(27.5,1.1,'IV','HorizontalAlignment','center','FontSize',16)
+
+    text(25.1,0.6,'\leftarrow Cut-Out Speed','HorizontalAlignment','left','FontSize',20)
+    text(10.4,0.2,'Rated Speed \rightarrow','HorizontalAlignment','right','FontSize',20)
+    text(3,0.8,'\leftarrow Cut-In Speed','HorizontalAlignment','left','FontSize',20)
+
+    
+
+    hold off
+
+
+    grid on
 
 % figure;
 %     plot(Time,Veer(7,:),'LineStyle','none','Marker','.','Color','k')

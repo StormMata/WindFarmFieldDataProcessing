@@ -30,8 +30,8 @@ for i = 1:length(WindBins)
         Dist.All(i,:)   = TempIndices .* D.Power;
 
         STD.All(i)     = std(nonzeros(TempIndices .* D.Power/2100));
-        STD.Larger(i)  = std(nonzeros(AvgComp.Greater .* TempIndices .* D.Power));
-        STD.Less(i)    = std(nonzeros(AvgComp.Less .* TempIndices .* D.Power));
+        STD.Larger(i)  = std(nonzeros(AvgComp.Greater .* TempIndices .* D.Power/2100));
+        STD.Less(i)    = std(nonzeros(AvgComp.Less .* TempIndices .* D.Power/2100));
         
     % Compute inferential stats
         Sig.Large(i)   = ttest2(nonzeros(AvgComp.Greater .* TempIndices .* D.Power),nonzeros(TempIndices .* D.Power));
