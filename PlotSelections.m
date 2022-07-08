@@ -967,6 +967,7 @@ if P.AlphaBetaFull == 1
     figure;
         imagesc(AB.SSrange,AB.DSrange,AlphaBeta.Power);
         axis xy                                                                 % Flip image
+        axis equal
         colormap([1 1 1; parula(256)])                                          % Bi-tone colomap
         colorbar
     
@@ -977,11 +978,11 @@ if P.AlphaBetaFull == 1
         caxis([0.75 1.1])
         hold on
     
-        for i = 1:length(AB.SSrange)                                            % Vertical brid lines
+        for i = 1:length(AB.SSrange)                                            % Vertical grid lines
             xline(AB.SSrange(i)-AB.s/2)
         end
     
-        for i = 1:length(AB.DSrange)                                            % Horizontal brid lines
+        for i = 1:length(AB.DSrange)                                            % Horizontal grid lines
             yline(AB.DSrange(i)-AB.s/2)
         end
     
@@ -1786,7 +1787,7 @@ if P.ShearDirMedians == 1
         
         indplot = datasample(ind,10);                                                   % Select 10 random profiles
         
-%         right = median(D.Veer(:,ind) - D.Veer(TxfLH.HubRow,ind),2) + std(D.Veer(:,ind) - D.Veer(T.HubRow,ind),[],2);
+%         right = median(D.Veer(:,ind) - D.Veer(T.HubRow,ind),2) + std(D.Veer(:,ind) - D.Veer(T.HubRow,ind),[],2);
 %         left = median(D.Veer(:,ind) - D.Veer(T.HubRow,ind),2) - std(D.Veer(:,ind) - D.Veer(T.HubRow,ind),[],2);
 %         
 %         patch([right' fliplr(left')],[flip(T.Heights) T.Heights],'k','facealpha',0.1,'edgecolor','None')

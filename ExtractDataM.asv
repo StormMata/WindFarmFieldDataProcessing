@@ -95,13 +95,15 @@ for z = 1:length(T.TOI)
     
         PitchAng = PitchAng(Indices);                                                           % Apply initial filter          [deg]
     
-    %% Omega
+    %% Omega and Tip Speed Ratio
     
         GenSpeed = data.(strcat('BHR',num2str(T.TOI(z),'%02.f'))).GeneratorSpeed;               % Retrieve generator speed      [RPM]
     
         GenSpeed = GenSpeed(Indices);                                                           % Apply initial filter          [RPM]
 
         Omega    = (GenSpeed * 2 * pi / 60) / T.GR;                                             % Calculate Omega               [rad/s]
+
+        TSR      = Omega 
     
     %% Create new indices vector from deletions
     

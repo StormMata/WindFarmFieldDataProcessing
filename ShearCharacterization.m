@@ -10,11 +10,12 @@ fprintf('\n------------------------\n')
 
 for i = 1:size(D.Veer,2)
 
-    D.Veer(D.Veer > 180) = D.Veer(D.Veer > 180) - 360;                          % Convert angles >180 to negative angles    [deg]
+    D.Veer(D.Veer > 180) = D.Veer(D.Veer > 180) - 360;                      % Convert angles >180 to negative angles        [deg]
     
-    VeerI = interp1(flip(T.Heights)',D.Veer(:,i),43:1:169);                     % Interpolate direction shear profile       [deg]
-    
-    PDFs.DSrate(i) = (VeerI(T.Hub+T.R-43)-VeerI(T.Hub-T.R-43))/(T.R*2);         % Rate of direction shear                   [deg/m]
+    VeerTop = interp1(flip(T.Heights)',D.Veer(:,i),T.Hub+T.R,'linear');     % Interpolate direction shear at top of rotor   [deg]
+    VeerBot = interp1(flip(T.Heights)',D.Veer(:,i),T.Hub-T.R,'linear');     % Interpolate direction shear at bottom of rotor[deg]
+
+    PDFs.DSrate(i) = (VeerTop - VeerBot)/(T.R*2);                           % Rate of direction shear                       [deg/m]
 
 end
 

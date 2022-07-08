@@ -29,7 +29,7 @@
 % Wind
 
 
-clearvars -except Ekman PLFull PLInflec WndFamMap
+clearvars -except data Ekman PLFull PLInflec WndFamMap P
 %close all
 clc
 
